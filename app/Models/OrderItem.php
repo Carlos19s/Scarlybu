@@ -1,19 +1,24 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
-    protected $table = 'order_items';
     protected $fillable = [
-        'order_id','product_id','cantidad',
-        'precio_unitario','iva_porcentaje','subtotal',
+        'order_id',
+        'product_id',
+        'cantidad',
+        'precio_unitario',
+        'iva_porcentaje',
+        'subtotal',
     ];
 
     protected $casts = [
         'precio_unitario' => 'decimal:2',
-        'subtotal'        => 'decimal:2',
+        'iva_porcentaje' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function order()
