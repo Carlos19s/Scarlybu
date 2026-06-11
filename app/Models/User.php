@@ -58,5 +58,15 @@ class User extends Authenticatable implements PasskeyUser
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    } 
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
+
+    public function isGerente(): bool { return $this->role === 'gerente'; }
+    public function isVendedor(): bool { return $this->role === 'vendedor'; }
+    public function isAdmin(): bool { return $this->role === 'admin'; }
+    public function isAuditor(): bool { return $this->role === 'auditor'; }
 }
