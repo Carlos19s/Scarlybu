@@ -24,6 +24,7 @@ Route::get('/pedido/{order}/pdf', function (Order $order) {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Volt::route('/mis-notas-de-pedido', 'store.orders')->name('store.orders');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {

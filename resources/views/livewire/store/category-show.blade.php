@@ -37,6 +37,7 @@ new #[Layout('layouts.store')] class extends Component {
         }
 
         session()->put('cart', $cart);
+        $this->dispatch('cart-updated');
     }
 
     public function with(): array
@@ -52,35 +53,35 @@ new #[Layout('layouts.store')] class extends Component {
 
 <div>
     {{-- Category Header --}}
-    <section class="bg-gradient-to-r from-zinc-900 to-zinc-800 text-white py-12">
+    <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <nav class="flex items-center text-sm text-zinc-400 mb-4">
+            <nav class="flex items-center text-sm text-slate-400 mb-4">
                 <a href="{{ route('store.home') }}" class="hover:text-white transition-colors" wire:navigate>Inicio</a>
                 <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 <span class="text-white">{{ $category->nombre }}</span>
             </nav>
             <h1 class="text-3xl md:text-4xl font-bold">{{ $category->nombre }}</h1>
             @if($category->descripcion)
-                <p class="mt-2 text-zinc-300 max-w-xl">{{ $category->descripcion }}</p>
+                <p class="mt-2 text-slate-300 max-w-xl">{{ $category->descripcion }}</p>
             @endif
 
             {{-- Subcategories / Sibling Categories Filter --}}
             @php
                 $relatedCategories = $category->parent_id 
-                    ? $category->parent->children()->where('activa', true)->get() // Siblings
-                    : $category->children()->where('activa', true)->get();        // Children
+                    ? $category->parent->children()->where('activa', true)->get()
+                    : $category->children()->where('activa', true)->get();
             @endphp
 
             @if($relatedCategories->count() > 0)
                 <div class="mt-6 flex flex-wrap gap-2">
                     @if($category->parent_id)
-                        <a href="{{ route('store.category', $category->parent->slug) }}" class="px-4 py-1.5 rounded-full text-sm font-medium border border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors" wire:navigate>
+                        <a href="{{ route('store.category', $category->parent->slug) }}" class="px-4 py-1.5 rounded-full text-sm font-medium border border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" wire:navigate>
                             Todas las {{ $category->parent->nombre }}
                         </a>
                     @endif
                     
                     @foreach($relatedCategories as $relCat)
-                        <a href="{{ route('store.category', $relCat->slug) }}" class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors {{ $category->id === $relCat->id ? 'bg-rose-500 text-white border border-rose-500' : 'bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white' }}" wire:navigate>
+                        <a href="{{ route('store.category', $relCat->slug) }}" class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors {{ $category->id === $relCat->id ? 'bg-emerald-500 text-white border border-emerald-500' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white' }}" wire:navigate>
                             {{ $relCat->nombre }}
                         </a>
                     @endforeach
@@ -91,15 +92,15 @@ new #[Layout('layouts.store')] class extends Component {
 
     {{-- Products Grid --}}
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             @forelse($products as $product)
-                <div class="group bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <div class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <a href="{{ route('store.product', $product->slug) }}" wire:navigate>
-                        <div class="aspect-square overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                        <div class="aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                             @if($product->imagen)
                                 <img src="{{ asset('storage/' . $product->imagen) }}" alt="{{ $product->nombre }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             @else
-                                <div class="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-600">
+                                <div class="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                                     <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </div>
                             @endif
@@ -107,14 +108,14 @@ new #[Layout('layouts.store')] class extends Component {
                     </a>
                     <div class="p-4">
                         <a href="{{ route('store.product', $product->slug) }}" wire:navigate>
-                            <h3 class="font-semibold text-sm text-zinc-800 dark:text-zinc-100 group-hover:text-rose-500 transition-colors truncate">{{ $product->nombre }}</h3>
+                            <h3 class="font-semibold text-sm text-slate-800 dark:text-slate-100 group-hover:text-emerald-500 transition-colors truncate">{{ $product->nombre }}</h3>
                         </a>
                         <div class="flex items-center justify-between mt-3">
                             <div>
-                                <span class="text-lg font-bold text-zinc-900 dark:text-white">${{ number_format($product->precio_venta, 2) }}</span>
-                                <span class="text-[10px] text-zinc-400 block">IVA incluido</span>
+                                <span class="text-lg font-bold text-slate-900 dark:text-white">${{ number_format($product->precio_venta, 2) }}</span>
+                                <span class="text-[10px] text-slate-400 block">IVA incluido</span>
                             </div>
-                            <button wire:click="addToCart({{ $product->id }})" class="p-2 rounded-full bg-rose-500 text-white hover:bg-rose-600 shadow-md hover:shadow-lg transition-all hover:scale-110 active:scale-95">
+                            <button wire:click="addToCart({{ $product->id }})" class="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg transition-all hover:scale-110 active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             </button>
                         </div>
@@ -126,9 +127,9 @@ new #[Layout('layouts.store')] class extends Component {
                     </div>
                 </div>
             @empty
-                <div class="col-span-full text-center py-16 text-zinc-500">
+                <div class="col-span-full text-center py-16 text-slate-500">
                     <p class="text-lg">No hay productos en esta categoría aún.</p>
-                    <a href="{{ route('store.home') }}" class="inline-block mt-4 text-rose-500 hover:text-rose-600 font-medium" wire:navigate>← Volver al inicio</a>
+                    <a href="{{ route('store.home') }}" class="inline-block mt-4 text-emerald-500 hover:text-emerald-600 font-medium" wire:navigate>← Volver al inicio</a>
                 </div>
             @endforelse
         </div>

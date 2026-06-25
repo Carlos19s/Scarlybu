@@ -38,6 +38,7 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;
             session()->put('cart', $cart);
+            $this->dispatch('cart-updated');
         }
     }
 
@@ -51,6 +52,7 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
                 unset($cart[$productId]);
             }
             session()->put('cart', $cart);
+            $this->dispatch('cart-updated');
         }
     }
 
@@ -59,11 +61,13 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
         $cart = session()->get('cart', []);
         unset($cart[$productId]);
         session()->put('cart', $cart);
+        $this->dispatch('cart-updated');
     }
 
     public function clearCart()
     {
         session()->forget('cart');
+        $this->dispatch('cart-updated');
     }
 
     public function checkout()

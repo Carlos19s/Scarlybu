@@ -3,113 +3,133 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="lg:hidden" />
-            </flux:sidebar.header>
+    <body class="admin-body">
+        <!-- Top Navigation Bar -->
+        <nav class="admin-nav sticky top-0 z-50" x-data="{ mobileOpen: false }">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Left: Logo + Main Nav -->
+                    <div class="flex items-center gap-2">
+                        <!-- Mobile toggle -->
+                        <button @click="mobileOpen = !mobileOpen" class="mobile-nav-toggle">
+                            <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                            <svg x-show="mobileOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
 
-            <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-
-                    @can('manage_catalog')
-                        <flux:sidebar.item icon="shopping-bag" :href="route('admin.products.index')" :current="request()->routeIs('admin.products.*')" wire:navigate>
-                            Productos
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>
-                            Categorías
-                        </flux:sidebar.item>
-                    @endcan
-
-                    @can('manage_orders')
-                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>
-                            Pedidos
-                        </flux:sidebar.item>
-                    @endcan
-
-                    @can('manage_users')
-                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
-                            Usuarios y Perfiles
-                        </flux:sidebar.item>
-                    @endcan
-                </flux:sidebar.group>
-            </flux:sidebar.nav>
-
-            <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
-        </flux:sidebar>
-
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-
-            <flux:spacer />
-
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
-
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
-                                />
-
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                                    <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
-                                </div>
+                        <!-- Brand -->
+                        <a href="{{ route('store.home') }}" wire:navigate class="flex items-center gap-2.5 mr-4">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/20">
+                                <svg class="w-4.5 h-4.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                             </div>
+                            <span class="text-white font-bold text-lg tracking-tight hidden sm:block">Scarlybu</span>
+                        </a>
+
+                        <!-- Desktop Nav Links -->
+                        <div class="nav-links items-center gap-1 hidden md:flex">
+                            <a href="{{ route('dashboard') }}" wire:navigate
+                               class="admin-nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                                Dashboard
+                            </a>
+                            <a href="{{ route('store.home') }}" wire:navigate
+                               class="admin-nav-item">
+                                Tienda
+                            </a>
+                            @can('manage_catalog')
+                                <a href="{{ route('admin.products.index') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                                    Productos
+                                </a>
+                                <a href="{{ route('admin.categories.index') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                                    Categorías
+                                </a>
+                            @endcan
+                            @can('manage_orders')
+                                <a href="{{ route('admin.orders.index') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                                    Pedidos
+                                </a>
+                            @endcan
+                            @can('manage_users')
+                                <a href="{{ route('admin.users.index') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                    Usuarios
+                                </a>
+                            @endcan
                         </div>
-                    </flux:menu.radio.group>
+                    </div>
 
-                    <flux:menu.separator />
+                    <!-- Right: User Menu -->
+                    <div class="flex items-center gap-3">
+                        <flux:dropdown position="bottom" align="end">
+                            <flux:profile :initials="auth()->user()->initials()" icon-trailing="chevron-down" class="cursor-pointer" />
+                            <flux:menu>
+                                <div class="px-3 py-2 border-b border-zinc-200 dark:border-zinc-700">
+                                    <p class="text-sm font-semibold">{{ auth()->user()->name }}</p>
+                                    <p class="text-xs text-zinc-500">{{ auth()->user()->email }}</p>
+                                    <span class="badge-emerald mt-1 text-[0.65rem]">{{ ucfirst(str_replace('_', ' ', auth()->user()->roles->first()?->name ?? 'Usuario')) }}</span>
+                                </div>
+                                <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                                <flux:menu.separator />
+                                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                    @csrf
+                                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer" data-test="logout-button">
+                                        {{ __('Log out') }}
+                                    </flux:menu.item>
+                                </form>
+                            </flux:menu>
+                        </flux:dropdown>
+                    </div>
+                </div>
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
+                <!-- Mobile Nav Links -->
+                <div x-show="mobileOpen" x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 -translate-y-2"
+                     class="md:hidden pb-3 space-y-1">
+                    <a href="{{ route('dashboard') }}" wire:navigate
+                       class="admin-nav-item block {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        Dashboard
+                    </a>
+                    <a href="{{ route('store.home') }}" wire:navigate class="admin-nav-item block">
+                        Tienda
+                    </a>
+                    @can('manage_catalog')
+                        <a href="{{ route('admin.products.index') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                            Productos
+                        </a>
+                        <a href="{{ route('admin.categories.index') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                            Categorías
+                        </a>
+                    @endcan
+                    @can('manage_orders')
+                        <a href="{{ route('admin.orders.index') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                            Pedidos
+                        </a>
+                    @endcan
+                    @can('manage_users')
+                        <a href="{{ route('admin.users.index') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                            Usuarios
+                        </a>
+                    @endcan
+                </div>
+            </div>
+        </nav>
 
-                    <flux:menu.separator />
-
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item
-                            as="button"
-                            type="submit"
-                            icon="arrow-right-start-on-rectangle"
-                            class="w-full cursor-pointer"
-                            data-test="logout-button"
-                        >
-                            {{ __('Log out') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
-        </flux:header>
-
-        {{ $slot }}
+        <!-- Main Content -->
+        <div class="admin-container">
+            <flux:main>
+                {{ $slot }}
+            </flux:main>
+        </div>
 
         @persist('toast')
             <flux:toast.group>

@@ -11,24 +11,34 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
     public bool $showModal = false;
     public ?Order $viewingOrder = null;
-    
+
     public string $estado = '';
+    public string $search = '';
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function with(): array
     {
         return [
-            'orders' => Order::with('user')->latest()->paginate(10),
+            'orders' => Order::with('user')
+                ->when($this->search, fn($q) => $q->where('numero_pedido', 'like', "%{$this->search}%")
+                    ->orWhere('cliente_nombre', 'like', "%{$this->search}%"))
+                ->latest()
+                ->paginate(10),
         ];
     }
 
-    public function viewDetails(Order $order)
+    public function viewDetails(Order $order): void
     {
         $this->viewingOrder = $order->load('items.product', 'user');
         $this->estado = $order->estado;
         $this->showModal = true;
     }
 
-    public function updateStatus()
+    public function updateStatus(): void
     {
         $this->validate([
             'estado' => 'required|string',
@@ -41,103 +51,137 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
     }
 }; ?>
 
-<div class="flex flex-col gap-6">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl" level="1">Pedidos</flux:heading>
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="admin-page-header">
+        <div>
+            <h1 class="admin-page-title">Pedidos</h1>
+            <p class="admin-page-subtitle">Gestiona los pedidos de tus clientes</p>
+        </div>
     </div>
 
-    <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-        <table class="w-full text-left text-sm">
-            <thead class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
+    <!-- Search -->
+    <div class="admin-toolbar">
+        <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por # pedido o nombre de cliente..."
+                   class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-colors">
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="admin-table-wrapper animate-fade-in-up">
+        <table class="admin-table">
+            <thead>
                 <tr>
-                    <th class="p-4 font-medium"># Pedido</th>
-                    <th class="p-4 font-medium">Cliente</th>
-                    <th class="p-4 font-medium">Total</th>
-                    <th class="p-4 font-medium">Estado</th>
-                    <th class="p-4 font-medium">Fecha</th>
-                    <th class="p-4 font-medium text-right">Acciones</th>
+                    <th># Pedido</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="text-right">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+            <tbody>
                 @forelse($orders as $order)
-                    <tr class="bg-white dark:bg-neutral-900">
-                        <td class="p-4 font-bold">{{ $order->numero_pedido }}</td>
-                        <td class="p-4">
-                            <div>{{ $order->cliente_nombre }}</div>
-                            <div class="text-xs text-neutral-500">{{ $order->cliente_telefono }}</div>
+                    <tr>
+                        <td>
+                            <span class="font-bold text-slate-900 dark:text-slate-100">{{ $order->numero_pedido }}</span>
                         </td>
-                        <td class="p-4 font-medium">${{ number_format($order->total, 2) }}</td>
-                        <td class="p-4">
+                        <td>
+                            <div class="font-medium text-slate-900 dark:text-slate-100">{{ $order->cliente_nombre }}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">{{ $order->cliente_telefono }}</div>
+                        </td>
+                        <td>
+                            <span class="font-semibold text-emerald-600 dark:text-emerald-400">${{ number_format($order->total, 2) }}</span>
+                        </td>
+                        <td>
                             @if($order->estado == 'entregado')
-                                <flux:badge color="green">Entregado</flux:badge>
+                                <span class="badge-emerald">Entregado</span>
                             @elseif($order->estado == 'cancelado')
-                                <flux:badge color="red">Cancelado</flux:badge>
+                                <span class="badge-red">Cancelado</span>
+                            @elseif($order->estado == 'enviado')
+                                <span class="badge-blue">Enviado</span>
+                            @elseif($order->estado == 'en_proceso')
+                                <span class="badge-orange">En Proceso</span>
                             @else
-                                <flux:badge color="zinc">{{ ucfirst(str_replace('_', ' ', $order->estado)) }}</flux:badge>
+                                <span class="badge-zinc">{{ ucfirst(str_replace('_', ' ', $order->estado)) }}</span>
                             @endif
                         </td>
-                        <td class="p-4 text-neutral-500">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-                        <td class="p-4 text-right">
-                            <flux:button wire:click="viewDetails({{ $order->id }})" variant="ghost" size="sm">Ver Detalles</flux:button>
+                        <td class="text-sm text-slate-500 dark:text-slate-400">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="text-right">
+                            <button wire:click="viewDetails({{ $order->id }})"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Ver
+                            </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-neutral-500">No hay pedidos registrados.</td>
+                        <td colspan="6" class="text-center py-12">
+                            <div class="flex flex-col items-center gap-2 text-slate-400">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                <p class="font-medium">No hay pedidos registrados</p>
+                            </div>
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div>
+
+    <!-- Pagination -->
+    <div class="mt-4">
         {{ $orders->links() }}
     </div>
 
+    <!-- Order Detail Modal -->
     <flux:modal wire:model="showModal" class="md:w-3/4 lg:w-2/3">
         @if($viewingOrder)
         <div class="space-y-6">
             <div class="flex items-start justify-between">
                 <div>
                     <flux:heading size="lg">Pedido #{{ $viewingOrder->numero_pedido }}</flux:heading>
-                    <p class="text-sm text-neutral-500">Fecha: {{ $viewingOrder->created_at->format('d/m/Y H:i') }}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ $viewingOrder->created_at->format('d/m/Y H:i') }}</p>
                 </div>
                 <div class="text-right">
-                    <p class="font-bold text-lg">${{ number_format($viewingOrder->total, 2) }}</p>
+                    <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${{ number_format($viewingOrder->total, 2) }}</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 text-sm border-y border-neutral-200 dark:border-neutral-700 py-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <div>
-                    <span class="text-neutral-500 block">Cliente:</span>
-                    <strong>{{ $viewingOrder->cliente_nombre }}</strong>
-                    <p>{{ $viewingOrder->cliente_telefono }}</p>
-                    <p>{{ $viewingOrder->cliente_correo }}</p>
+                    <span class="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Cliente</span>
+                    <p class="font-medium text-slate-900 dark:text-slate-100 mt-1">{{ $viewingOrder->cliente_nombre }}</p>
+                    <p class="text-sm text-slate-500">{{ $viewingOrder->cliente_telefono }}</p>
+                    <p class="text-sm text-slate-500">{{ $viewingOrder->cliente_correo }}</p>
                 </div>
                 <div>
-                    <span class="text-neutral-500 block">Dirección de Entrega:</span>
-                    <p>{{ $viewingOrder->cliente_direccion }}</p>
+                    <span class="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">Dirección</span>
+                    <p class="text-sm text-slate-900 dark:text-slate-100 mt-1">{{ $viewingOrder->cliente_direccion }}</p>
                 </div>
             </div>
 
             <div>
-                <flux:heading size="md" class="mb-2">Productos</flux:heading>
-                <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-neutral-50 dark:bg-neutral-800">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Productos del Pedido</h3>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
                             <tr>
-                                <th class="p-3">Producto</th>
-                                <th class="p-3">Cant.</th>
-                                <th class="p-3">Precio</th>
-                                <th class="p-3 text-right">Subtotal</th>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Precio</th>
+                                <th class="text-right">Subtotal</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                        <tbody>
                             @foreach($viewingOrder->items as $item)
                             <tr>
-                                <td class="p-3">{{ $item->product?->nombre ?? 'Producto Desconocido' }}</td>
-                                <td class="p-3">{{ $item->cantidad }}</td>
-                                <td class="p-3">${{ number_format($item->precio_unitario, 2) }}</td>
-                                <td class="p-3 text-right">${{ number_format($item->subtotal, 2) }}</td>
+                                <td class="font-medium text-slate-900 dark:text-slate-100">{{ $item->product?->nombre ?? 'Producto Desconocido' }}</td>
+                                <td>{{ $item->cantidad }}</td>
+                                <td>${{ number_format($item->precio_unitario, 2) }}</td>
+                                <td class="text-right font-medium">${{ number_format($item->subtotal, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -146,13 +190,13 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
             </div>
 
             @if($viewingOrder->notas)
-            <div class="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg">
-                <span class="font-medium text-sm block mb-1">Notas del cliente:</span>
-                <p class="text-sm">{{ $viewingOrder->notas }}</p>
+            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30">
+                <span class="text-xs uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-400">Notas del cliente</span>
+                <p class="text-sm text-slate-700 dark:text-slate-300 mt-1">{{ $viewingOrder->notas }}</p>
             </div>
             @endif
 
-            <form wire:submit="updateStatus" class="flex items-end gap-4 bg-neutral-100 dark:bg-neutral-800/50 p-4 rounded-lg">
+            <form wire:submit="updateStatus" class="flex items-end gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <div class="flex-1">
                     <flux:select wire:model="estado" label="Cambiar Estado">
                         <option value="no_revisado">No Revisado</option>
@@ -162,18 +206,21 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                         <option value="cancelado">Cancelado</option>
                     </flux:select>
                 </div>
-                <flux:button type="submit" variant="primary">Actualizar Estado</flux:button>
+                <flux:button type="submit" variant="primary" class="!bg-emerald-600 hover:!bg-emerald-700">Actualizar</flux:button>
             </form>
-            
-            <div class="flex justify-between items-center mt-6 border-t border-neutral-200 dark:border-neutral-700 pt-4">
-                <div class="flex gap-4">
-                    <a href="{{ route('store.order.pdf', $viewingOrder) }}" target="_blank" class="text-sm font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+
+            <div class="flex flex-wrap justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700 gap-3">
+                <div class="flex gap-3">
+                    <a href="{{ route('store.order.pdf', $viewingOrder) }}" target="_blank"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Descargar PDF
                     </a>
-                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $viewingOrder->cliente_telefono) }}?text={{ urlencode('Hola ' . $viewingOrder->cliente_nombre . ', le contactamos de Scarlybu respecto a su pedido #' . $viewingOrder->numero_pedido) }}" target="_blank" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.711.848 2.872.848 3.182 0 5.768-2.585 5.768-5.766 0-3.181-2.586-5.767-5.768-5.767m0-2c4.285 0 7.768 3.483 7.768 7.767 0 4.285-3.483 7.766-7.768 7.766-1.401 0-2.738-.382-3.882-1.054l-4.149 1.09 1.107-4.043c-.732-1.168-1.121-2.527-1.121-3.953 0-4.284 3.483-7.767 7.768-7.767m3.939 10.375c-.215.607-1.25.111-1.396-.117-.145-.228-1.503-1.89-1.503-1.89s-.144-.228-.016-.403c.129-.174.582-.581.582-.581s.145-.148.243.029c.099.176.435.606.435.606s.08.131.258.043c.176-.089 1.091-.403 1.503-.946.411-.543-.058-.696-.058-.696s-.662-.314-.814-.403c-.152-.089-.263-.127-.129-.356.134-.229.582-.76.711-.905.129-.145.263-.174.394-.145.131.029.814.382.814.382s.152.057.176.229c.023.172-.215 1.25-.215 1.25z"/></svg>
-                        Contactar WhatsApp
+                    <a href="https://wa.me/{{ preg_replace('/^0/', '593', preg_replace('/[^0-9]/', '', $viewingOrder->cliente_telefono)) }}?text={{ urlencode('Hola ' . $viewingOrder->cliente_nombre . ', le contactamos de Scarlybu respecto a su pedido #' . $viewingOrder->numero_pedido) }}"
+                       target="_blank"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        WhatsApp
                     </a>
                 </div>
                 <flux:button wire:click="$set('showModal', false)" variant="ghost">Cerrar</flux:button>
