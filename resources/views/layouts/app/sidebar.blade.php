@@ -43,6 +43,10 @@
                                    class="admin-nav-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                                     Categorías
                                 </a>
+                                <a href="{{ route('admin.promotions.index') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}">
+                                    Promociones
+                                </a>
                             @endcan
                             @can('manage_orders')
                                 <a href="{{ route('admin.orders.index') }}" wire:navigate
@@ -106,6 +110,10 @@
                         <a href="{{ route('admin.categories.index') }}" wire:navigate
                            class="admin-nav-item block {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                             Categorías
+                        </a>
+                        <a href="{{ route('admin.promotions.index') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}">
+                            Promociones
                         </a>
                     @endcan
                     @can('manage_orders')

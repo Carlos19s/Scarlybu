@@ -30,7 +30,10 @@ new #[Layout('layouts.store')] class extends Component {
         } else {
             $cart[$productId] = [
                 'nombre' => $product->nombre,
-                'precio' => $product->precio_venta,
+                'precio' => $product->precio_actual,
+                'precio_original' => $product->precio_venta,
+                'tiene_promocion' => $product->tiene_promocion,
+                'porcentaje_descuento' => $product->porcentaje_descuento,
                 'imagen' => $product->imagen,
                 'cantidad' => 1,
             ];
@@ -45,6 +48,7 @@ new #[Layout('layouts.store')] class extends Component {
         return [
             'products' => Product::whereIn('category_id', $this->category->getAllCategoryIds())
                 ->where('activo', true)
+                ->with(['category', 'promociones'])
                 ->latest()
                 ->paginate(12),
         ];
@@ -96,13 +100,18 @@ new #[Layout('layouts.store')] class extends Component {
             @forelse($products as $product)
                 <div class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <a href="{{ route('store.product', $product->slug) }}" wire:navigate>
-                        <div class="aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
+                        <div class="aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800 relative">
                             @if($product->imagen)
                                 <img src="{{ asset('storage/' . $product->imagen) }}" alt="{{ $product->nombre }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             @else
                                 <div class="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                                     <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </div>
+                            @endif
+                            @if($product->tiene_promocion)
+                                <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-rose-600 text-[8px] font-bold text-white uppercase tracking-wider shadow-sm">
+                                    Oferta
+                                </span>
                             @endif
                         </div>
                     </a>
@@ -112,8 +121,20 @@ new #[Layout('layouts.store')] class extends Component {
                         </a>
                         <div class="flex items-center justify-between mt-3">
                             <div>
-                                <span class="text-lg font-bold text-slate-900 dark:text-white">${{ number_format($product->precio_venta, 2) }}</span>
-                                <span class="text-[10px] text-slate-400 block">IVA incluido</span>
+                                @if($product->tiene_promocion)
+                                    <div class="flex flex-col">
+                                        <div class="flex items-baseline gap-1.5">
+                                            <span class="text-base font-black text-rose-600 dark:text-rose-500">${{ number_format($product->precio_actual, 2) }}</span>
+                                            <span class="text-xs text-slate-400 dark:text-slate-500 line-through">${{ number_format($product->precio_venta, 2) }}</span>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded self-start mt-0.5">
+                                            -{{ $product->porcentaje_descuento }}% OFF
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="text-lg font-bold text-slate-900 dark:text-white">${{ number_format($product->precio_venta, 2) }}</span>
+                                    <span class="text-[10px] text-slate-400 block">IVA incluido</span>
+                                @endif
                             </div>
                             <button wire:click="addToCart({{ $product->id }})" class="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg transition-all hover:scale-110 active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>

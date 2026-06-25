@@ -10,7 +10,10 @@ new #[Layout('layouts.store')] class extends Component {
 
     public function mount(string $slug)
     {
-        $this->product = Product::where('slug', $slug)->where('activo', true)->with('category')->firstOrFail();
+        $this->product = Product::where('slug', $slug)
+            ->where('activo', true)
+            ->with(['category', 'promociones'])
+            ->firstOrFail();
     }
 
     public function increment()
@@ -37,7 +40,10 @@ new #[Layout('layouts.store')] class extends Component {
         } else {
             $cart[$id] = [
                 'nombre' => $this->product->nombre,
-                'precio' => $this->product->precio_venta,
+                'precio' => $this->product->precio_actual,
+                'precio_original' => $this->product->precio_venta,
+                'tiene_promocion' => $this->product->tiene_promocion,
+                'porcentaje_descuento' => $this->product->porcentaje_descuento,
                 'imagen' => $this->product->imagen,
                 'cantidad' => $this->cantidad,
             ];
@@ -54,6 +60,7 @@ new #[Layout('layouts.store')] class extends Component {
             'relatedProducts' => Product::where('category_id', $this->product->category_id)
                 ->where('id', '!=', $this->product->id)
                 ->where('activo', true)
+                ->with('promociones')
                 ->inRandomOrder()
                 ->take(4)
                 ->get(),
@@ -79,13 +86,18 @@ new #[Layout('layouts.store')] class extends Component {
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {{-- Image --}}
-            <div class="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <div class="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 relative">
                 @if($product->imagen)
                     <img src="{{ asset('storage/' . $product->imagen) }}" alt="{{ $product->nombre }}" class="w-full h-full object-cover">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                         <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     </div>
+                @endif
+                @if($product->tiene_promocion)
+                    <span class="absolute top-4 left-4 px-3 py-1 rounded-lg bg-rose-600 text-xs font-black text-white uppercase tracking-wider shadow-md animate-pulse">
+                        Oferta
+                    </span>
                 @endif
             </div>
 
@@ -96,9 +108,21 @@ new #[Layout('layouts.store')] class extends Component {
                 @endif
                 <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">{{ $product->nombre }}</h1>
 
-                <div class="flex items-baseline gap-3 mb-6">
-                    <span class="text-3xl font-black text-slate-900 dark:text-white">${{ number_format($product->precio_venta, 2) }}</span>
-                    <span class="text-sm text-zinc-400">IVA incluido (15%)</span>
+                <div class="mb-6">
+                    @if($product->tiene_promocion)
+                        <div class="flex items-baseline gap-3">
+                            <span class="text-3xl font-black text-rose-600 dark:text-rose-500">${{ number_format($product->precio_actual, 2) }}</span>
+                            <span class="text-lg text-slate-400 dark:text-slate-500 line-through">${{ number_format($product->precio_venta, 2) }}</span>
+                            <span class="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded">
+                                -{{ $product->porcentaje_descuento }}% OFF
+                            </span>
+                        </div>
+                    @else
+                        <div class="flex items-baseline gap-3">
+                            <span class="text-3xl font-black text-slate-900 dark:text-white">${{ number_format($product->precio_venta, 2) }}</span>
+                        </div>
+                    @endif
+                    <span class="text-xs text-zinc-400 block mt-1">IVA incluido (15%)</span>
                 </div>
 
                 @if($product->descripcion)
@@ -149,17 +173,29 @@ new #[Layout('layouts.store')] class extends Component {
             <h2 class="text-xl font-bold mb-6">También te puede interesar</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 @foreach($relatedProducts as $related)
-                    <a href="{{ route('store.product', $related->slug) }}" class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300" wire:navigate>
-                        <div class="aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
+                    <a href="{{ route('store.product', $related->slug) }}" class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 relative" wire:navigate>
+                        <div class="aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800 relative">
                             @if($related->imagen)
                                 <img src="{{ asset('storage/' . $related->imagen) }}" alt="{{ $related->nombre }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             @else
                                 <div class="w-full h-full flex items-center justify-center text-slate-300"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                             @endif
+                            @if($related->tiene_promocion)
+                                <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-rose-600 text-[8px] font-bold text-white uppercase tracking-wider shadow-sm">
+                                    Oferta
+                                </span>
+                            @endif
                         </div>
                         <div class="p-3">
                             <h3 class="text-sm font-semibold truncate">{{ $related->nombre }}</h3>
-                            <span class="text-sm font-bold text-emerald-500">${{ number_format($related->precio_venta, 2) }}</span>
+                            @if($related->tiene_promocion)
+                                <div class="flex items-baseline gap-1.5 mt-1">
+                                    <span class="text-sm font-black text-rose-600 dark:text-rose-500">${{ number_format($related->precio_actual, 2) }}</span>
+                                    <span class="text-xs text-slate-400 line-through">${{ number_format($related->precio_venta, 2) }}</span>
+                                </div>
+                            @else
+                                <span class="text-sm font-bold text-emerald-500 mt-1 block">${{ number_format($related->precio_venta, 2) }}</span>
+                            @endif
                         </div>
                     </a>
                 @endforeach

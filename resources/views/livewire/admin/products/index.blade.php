@@ -112,7 +112,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         ];
 
         if ($this->imagen_upload) {
-            $data['imagen'] = $this->imagen_upload->store('products', 'public');
+            $data['imagen'] = $this->imagen_upload->store('productos', 'public');
         }
 
         if ($this->isEditing) {

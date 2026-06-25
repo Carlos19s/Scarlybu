@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    /** @use HasFactory<ProductFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -43,6 +43,57 @@ class Product extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get all promotions for this product.
+     */
+    public function promociones()
+    {
+        return $this->hasMany(Promocion::class);
+    }
+
+    /**
+     * Get the active promotion for this product.
+     */
+    public function getPromocionActivaAttribute(): ?Promocion
+    {
+        $today = now()->toDateString();
+
+        return $this->promociones()
+            ->where('fecha_inicio', '<=', $today)
+            ->where('fecha_fin', '>=', $today)
+            ->first();
+    }
+
+    /**
+     * Get the current effective price of the product (takes promotion into account).
+     */
+    public function getPrecioActualAttribute(): float
+    {
+        $promocion = $this->promocion_activa;
+
+        return $promocion ? (float) $promocion->precio_promocion : (float) $this->precio_venta;
+    }
+
+    /**
+     * Determine if the product currently has an active promotion.
+     */
+    public function getTienePromocionAttribute(): bool
+    {
+        return ! is_null($this->promocion_activa);
+    }
+
+    /**
+     * Get the discount percentage for the active promotion.
+     */
+    public function getPorcentajeDescuentoAttribute(): int
+    {
+        if ($this->tiene_promocion && $this->precio_venta > 0) {
+            return (int) round((1 - ($this->precio_actual / $this->precio_venta)) * 100);
+        }
+
+        return 0;
     }
 
     /**

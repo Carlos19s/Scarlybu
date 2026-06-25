@@ -18,15 +18,48 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
 
     public bool $showCheckout = false;
 
+    public function getCartItemsProperty(): array
+    {
+        $cart = session()->get('cart', []);
+        if (empty($cart)) {
+            return [];
+        }
+
+        $products = Product::whereIn('id', array_keys($cart))
+            ->with(['promociones'])
+            ->get()
+            ->keyBy('id');
+
+        $items = [];
+        foreach ($cart as $productId => $item) {
+            $product = $products->get($productId);
+            if ($product) {
+                $items[$productId] = [
+                    'nombre' => $product->nombre,
+                    'precio' => $product->precio_actual,
+                    'precio_original' => $product->precio_venta,
+                    'tiene_promocion' => $product->tiene_promocion,
+                    'porcentaje_descuento' => $product->porcentaje_descuento,
+                    'imagen' => $product->imagen,
+                    'cantidad' => $item['cantidad'],
+                ];
+            } else {
+                $items[$productId] = $item;
+            }
+        }
+
+        return $items;
+    }
+
     public function getCartProperty(): array
     {
-        return session()->get('cart', []);
+        return $this->cart_items;
     }
 
     public function getTotalProperty(): float
     {
         $total = 0;
-        foreach ($this->cart as $item) {
+        foreach ($this->cart_items as $item) {
             $total += $item['precio'] * $item['cantidad'];
         }
         return $total;
@@ -85,7 +118,7 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
             'cliente_direccion' => 'required|string|max:500',
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->cart;
 
         if (empty($cart)) {
             return;
@@ -159,7 +192,17 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
                         {{-- Details --}}
                         <div class="flex-1 min-w-0">
                             <h3 class="font-semibold text-zinc-800 dark:text-zinc-100 truncate">{{ $item['nombre'] }}</h3>
-                            <p class="text-sm text-zinc-500">${{ number_format($item['precio'], 2) }} c/u</p>
+                            @if(isset($item['tiene_promocion']) && $item['tiene_promocion'])
+                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                    <span class="text-sm font-bold text-rose-600 dark:text-rose-500">${{ number_format($item['precio'], 2) }} <span class="text-xs font-normal text-zinc-500">c/u</span></span>
+                                    <span class="text-xs text-zinc-400 line-through">${{ number_format($item['precio_original'], 2) }}</span>
+                                    <span class="text-[9px] font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">
+                                        -{{ $item['porcentaje_descuento'] }}% OFF
+                                    </span>
+                                </div>
+                            @else
+                                <p class="text-sm text-zinc-500">${{ number_format($item['precio'], 2) }} c/u</p>
+                            @endif
                         </div>
 
                         {{-- Quantity Controls --}}

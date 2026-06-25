@@ -22,3 +22,14 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Laravel local storage uploads
+/storage/app/public/*
+!/storage/app/public/.gitignore
+!/storage/app/public/productos/
+/storage/app/public/productos/*
+!/storage/app/public/productos/.gitkeep
+!/storage/app/public/promociones/
+/storage/app/public/promociones/*
+!/storage/app/public/promociones/.gitkeep
+
