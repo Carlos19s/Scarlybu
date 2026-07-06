@@ -279,10 +279,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
             @php
                 $modelImages = [
                     ['img' => 'Modelo1.jpg',  'label' => 'Look Urbano'],
-                    ['img' => 'Modelo3.jpg',  'label' => 'Estilo Casual'],
                     ['img' => 'Modelo4.jpg',  'label' => 'Moda Moderna'],
-                    ['img' => 'Modelo5.jpg',  'label' => 'Look Fresco'],
-                    ['img' => 'Modelo9.jpg',  'label' => 'Estilo Unique'],
                     ['img' => 'Modelo12.jpg', 'label' => 'Premium Style'],
                 ];
             @endphp
