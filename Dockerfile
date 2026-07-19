@@ -43,7 +43,7 @@ RUN composer update --no-dev --optimize-autoloader
 RUN npm install
 RUN npm run build
 
-# CAMBIO AQUÍ: Asignamos propietario (www-data) Y permisos de escritura recursivos (775)
+# Asignamos propietario (www-data) Y permisos de escritura recursivos (775)
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
@@ -58,5 +58,6 @@ RUN a2enmod rewrite
 # Exponer el puerto por defecto
 EXPOSE 80
 
-# Comando de arranque seguro (SIN MIGRACIONES)
-CMD sh -lc 'if [ -n "${RENDER_DISK_PATH:-}" ]; then mkdir -p "${RENDER_DISK_PATH}" && chown -R www-data:www-data "${RENDER_DISK_PATH}" || true; ln -sfn "${RENDER_DISK_PATH}" /var/www/html/public/uploads || true; fi; php artisan config:clear && apache2-foreground'
+# Comando de arranque limpio que asegura los permisos en el volumen permanente de Render,
+# crea un link público en /public/uploads y arranca Apache.
+CMD sh -lc 'if [ -n "${RENDER_DISK_PATH:-}" ]; then mkdir -p "${RENDER_DISK_PATH}" && chown -R www-data:www-data "${RENDER_DISK_PATH}" && rm -rf /var/www/html/public/uploads && ln -s "${RENDER_DISK_PATH}" /var/www/html/public/uploads; fi && chown -R www-data:www-data /var/www/html/storage && chmod -R 775 /var/www/html/storage && php artisan config:clear && apache2-foreground'
