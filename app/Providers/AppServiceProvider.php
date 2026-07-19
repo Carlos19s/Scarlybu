@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -99,5 +100,9 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+        // NUEVO CAMBIO: Forzamos HTTPS en producción en Render para que no bloquee los formularios
+        if (config('app.env') === 'production' || app()->isProduction()) {
+            URL::forceScheme('https');
+        }
     }
 }

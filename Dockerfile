@@ -28,6 +28,10 @@ WORKDIR /var/www/html
 # Copiar todos los archivos de tu proyecto al contenedor
 COPY . .
 
+# Crear directorios que Laravel necesita antes de ejecutar composer
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
 # Instalar dependencias de PHP para producción
 RUN composer install --no-dev --optimize-autoloader
 
