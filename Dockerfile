@@ -58,13 +58,13 @@ RUN a2enmod rewrite
 # Exponer el puerto por defecto
 EXPOSE 80
 
-# Comando de arranque definitivo adaptado al volumen persistente de Render
+# SOLUCIÓN ADAPTADA A TU DISCO DE RENDER: Crea la carpeta física /public/storage y enlaza directamente tu volumen dentro de ella.
 CMD mkdir -p /var/www/html/storage/app/public/productos \
     /var/www/html/storage/framework/cache/data \
     /var/www/html/storage/framework/sessions \
     /var/www/html/storage/framework/views \
     /var/www/html/storage/logs && \
-    rm -rf /var/www/html/public/storage && \
+    rm -rf /var/www/html/public/storage /var/www/html/public/uploads && \
     mkdir -p /var/www/html/public/storage && \
     ln -s /var/www/html/storage/app/public/productos /var/www/html/public/storage/productos && \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && \
