@@ -1,18 +1,19 @@
 # Usar la imagen oficial de PHP 8.4 con Apache compatible con Laravel 13
 FROM php:8.4-apache
 
-# Instalar dependencias básicas del sistema
+# Instalar dependencias básicas del sistema y librerías de desarrollo para PostgreSQL
 RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
     curl \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar extensiones de PHP necesarias para Laravel de forma confiable
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && \
-    install-php-extensions pdo_mysql gd zip intl bcmath opcache pdo_pgsql
+    install-php-extensions pdo pdo_pgsql pgsql pdo_mysql gd zip intl bcmath opcache
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -30,7 +31,7 @@ COPY . .
 # Instalar dependencias de PHP para producción
 RUN composer install --no-dev --optimize-autoloader
 
-# Instalar dependencias de Node y compilar el frontend (reemplaza a npm run dev)
+# Instalar dependencias de Node y compilar el frontend
 RUN npm install
 RUN npm run build
 
@@ -47,4 +48,6 @@ RUN a2enmod rewrite
 
 # Exponer el puerto por defecto
 EXPOSE 80
+
+# Comando de arranque seguro
 CMD php artisan config:clear && php artisan migrate --force && apache2-foreground
