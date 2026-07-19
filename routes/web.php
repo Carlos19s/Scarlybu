@@ -34,6 +34,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Volt::route('/promotions', 'admin.promotions.index')->name('promotions.index')->middleware('can:manage_catalog');
     Volt::route('/orders', 'admin.orders.index')->name('orders.index')->middleware('can:manage_orders');
     Volt::route('/users', 'admin.users.index')->name('users.index')->middleware('can:manage_users');
+    Volt::route('/audit/logs', 'admin.audit.logs')->name('audit.logs')->middleware('can:view_audit_logs');
+    Volt::route('/audit/reports', 'admin.audit.reports')->name('audit.reports');
+    Volt::route('/reports/sales-profit', 'admin.reports.sales-profit')->name('reports.sales-profit')->middleware('can:manage_inventory');
 });
 
 require __DIR__.'/settings.php';

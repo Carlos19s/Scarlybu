@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Promocion extends Model
 {
+    use Auditable;
+
     /**
      * The table associated with the model.
      *

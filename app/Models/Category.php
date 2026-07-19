@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
+use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    /** @use HasFactory<\Database\Factories\CategoryFactory> */
-    use HasFactory;
+    /** @use HasFactory<CategoryFactory> */
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'nombre',
@@ -43,6 +45,7 @@ class Category extends Model
         return cache()->remember("category_{$this->id}_all_ids", 3600, function () {
             $ids = [$this->id];
             $childIds = self::where('parent_id', $this->id)->pluck('id')->toArray();
+
             return array_merge($ids, $childIds);
         });
     }
@@ -50,7 +53,7 @@ class Category extends Model
     public function getAllProductsCount(): int
     {
         return cache()->remember("category_{$this->id}_product_count", 1800, function () {
-            return \App\Models\Product::whereIn('category_id', $this->getAllCategoryIds())
+            return Product::whereIn('category_id', $this->getAllCategoryIds())
                 ->where('activo', true)
                 ->count();
         });
