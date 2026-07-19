@@ -16,9 +16,7 @@ class CategorySeeder extends Seeder
         $categories = [
             ['nombre' => 'Gorras', 'descripcion' => 'Gorras de todos los estilos y marcas'],
             ['nombre' => 'Accesorios', 'descripcion' => 'Accesorios de moda para cualquier ocasión'],
-            ['nombre' => 'Cosméticos', 'descripcion' => 'Productos de belleza y cuidado personal'],
             ['nombre' => 'Ropa', 'descripcion' => 'Ropa casual y de tendencia'],
-            ['nombre' => 'Zapatos', 'descripcion' => 'Calzado para todos los gustos'],
         ];
 
         foreach ($categories as $category) {
