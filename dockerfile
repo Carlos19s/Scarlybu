@@ -47,3 +47,4 @@ RUN a2enmod rewrite
 
 # Exponer el puerto por defecto
 EXPOSE 80
+CMD php artisan config:clear && php artisan migrate --force && apache2-foreground
