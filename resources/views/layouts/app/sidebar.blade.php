@@ -60,6 +60,30 @@
                                     Usuarios
                                 </a>
                             @endcan
+                            @can('view_audit_logs')
+                                <a href="{{ route('admin.audit.logs') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.audit.logs') ? 'active' : '' }}">
+                                    Bitácora
+                                </a>
+                            @endcan
+                            @can('manage_audit_reports')
+                                <a href="{{ route('admin.audit.reports') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.audit.reports') ? 'active' : '' }}">
+                                    Reportes
+                                </a>
+                            @endcan
+                            @can('review_audit_reports')
+                                <a href="{{ route('admin.audit.reports') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.audit.reports') ? 'active' : '' }}">
+                                    Informes de Auditoría
+                                </a>
+                            @endcan
+                            @can('manage_inventory')
+                                <a href="{{ route('admin.reports.sales-profit') }}" wire:navigate
+                                   class="admin-nav-item {{ request()->routeIs('admin.reports.sales-profit') ? 'active' : '' }}">
+                                    Ventas y Ganancias
+                                </a>
+                            @endcan
                         </div>
                     </div>
 
@@ -126,6 +150,30 @@
                         <a href="{{ route('admin.users.index') }}" wire:navigate
                            class="admin-nav-item block {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                             Usuarios
+                        </a>
+                    @endcan
+                    @can('view_audit_logs')
+                        <a href="{{ route('admin.audit.logs') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.audit.logs') ? 'active' : '' }}">
+                            Bitácora
+                        </a>
+                    @endcan
+                    @can('manage_audit_reports')
+                        <a href="{{ route('admin.audit.reports') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.audit.reports') ? 'active' : '' }}">
+                            Reportes
+                        </a>
+                    @endcan
+                    @can('review_audit_reports')
+                        <a href="{{ route('admin.audit.reports') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.audit.reports') ? 'active' : '' }}">
+                            Informes de Auditoría
+                        </a>
+                    @endcan
+                    @can('manage_inventory')
+                        <a href="{{ route('admin.reports.sales-profit') }}" wire:navigate
+                           class="admin-nav-item block {{ request()->routeIs('admin.reports.sales-profit') ? 'active' : '' }}">
+                            Ventas y Ganancias
                         </a>
                     @endcan
                 </div>

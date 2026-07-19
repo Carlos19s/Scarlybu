@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\Auditable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -34,7 +35,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable, HasRoles;
+    use Auditable, HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -59,15 +60,30 @@ class User extends Authenticatable implements PasskeyUser
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
-    } 
+    }
 
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
 
-    public function isGerente(): bool { return $this->role === 'gerente'; }
-    public function isVendedor(): bool { return $this->role === 'vendedor'; }
-    public function isAdmin(): bool { return $this->role === 'admin'; }
-    public function isAuditor(): bool { return $this->role === 'auditor'; }
+    public function isGerente(): bool
+    {
+        return $this->role === 'gerente';
+    }
+
+    public function isVendedor(): bool
+    {
+        return $this->role === 'vendedor';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isAuditor(): bool
+    {
+        return $this->role === 'auditor';
+    }
 }
