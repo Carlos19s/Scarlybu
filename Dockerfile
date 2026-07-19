@@ -37,7 +37,8 @@ RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Instalar dependencias de PHP para producción
-RUN composer install --no-dev --optimize-autoloader
+# Si composer.lock no está actualizado respecto a composer.json, usar update durante el build
+RUN composer update --no-dev --optimize-autoloader
 
 # Instalar dependencias de Node y compilar el frontend
 RUN npm install
