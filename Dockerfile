@@ -58,5 +58,5 @@ RUN a2enmod rewrite
 # Exponer el puerto por defecto
 EXPOSE 80
 
-# CORRECCIÓN EN EL CMD: Eliminamos cualquier enlace roto e inyectamos el storage:link nativo con permisos totales
-CMD php artisan config:clear && rm -rf /var/www/html/public/storage && php artisan storage:link --force && chown -R www-data:www-data /var/www/html/storage && chmod -R 775 /var/www/html/storage && apache2-foreground
+# Al arrancar, si Render monta un disco persistente, lo enlazamos a public/uploads
+CMD sh -lc 'if [ -n "${RENDER_DISK_PATH:-}" ]; then mkdir -p "${RENDER_DISK_PATH}" && chown -R www-data:www-data "${RENDER_DISK_PATH}" && rm -rf /var/www/html/public/uploads && ln -s "${RENDER_DISK_PATH}" /var/www/html/public/uploads; fi && php artisan config:clear && chown -R www-data:www-data /var/www/html/storage && chmod -R 775 /var/www/html/storage && apache2-foreground'
