@@ -59,4 +59,4 @@ RUN a2enmod rewrite
 EXPOSE 80
 
 # Comando de arranque seguro (SIN MIGRACIONES)
-CMD php artisan config:clear && apache2-foreground
+CMD sh -lc 'if [ -n "${RENDER_DISK_PATH:-}" ]; then mkdir -p "${RENDER_DISK_PATH}" && chown -R www-data:www-data "${RENDER_DISK_PATH}" || true; ln -sfn "${RENDER_DISK_PATH}" /var/www/html/public/uploads || true; fi; php artisan config:clear && apache2-foreground'

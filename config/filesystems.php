@@ -60,6 +60,15 @@ return [
             'report' => false,
         ],
 
+        'render_disk' => [
+            'driver' => 'local',
+            'root' => env('RENDER_DISK_PATH', storage_path('app/public')),
+            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*
