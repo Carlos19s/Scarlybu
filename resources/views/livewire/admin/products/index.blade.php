@@ -113,8 +113,8 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
 
         // CAMBIO AQUÍ: Forzar el guardado directo en la carpeta pública real
             if ($this->imagen_upload) {
-                $data['imagen'] = $this->imagen_upload->store('productos');
-        }
+                $data['imagen'] = $this->imagen_upload->storePublicly('productos');
+            }
 
         if ($this->isEditing) {
             $this->editingProduct->update($data);

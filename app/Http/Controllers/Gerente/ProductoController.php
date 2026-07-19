@@ -46,7 +46,7 @@ class ProductoController extends Controller
         $data['slug'] = Str::slug($data['nombre']).'-'.uniqid();
 
         if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')->store('productos');
+            $data['imagen'] = $request->file('imagen')->storePublicly('productos');
         }
 
         Product::create($data);
@@ -76,7 +76,7 @@ class ProductoController extends Controller
         ]);
 
         if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')->store('productos');
+            $data['imagen'] = $request->file('imagen')->storePublicly('productos');
         }
 
         $producto->update($data);
