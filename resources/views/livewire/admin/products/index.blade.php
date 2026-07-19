@@ -112,22 +112,8 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         ];
 
         // CAMBIO AQUÍ: Forzar el guardado directo en la carpeta pública real
-        if ($this->imagen_upload) {
-            // Generamos un nombre único para evitar duplicados de gorras
-            $filename = time() . '_' . Str::random(10) . '.' . $this->imagen_upload->getClientOriginalExtension();
-            
-            // Creamos físicamente la ruta pública si no existe y movemos el archivo ahí
-            $destinationPath = public_path('uploads/products');
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0775, true);
-            }
-            
-            // Obtenemos la ruta absoluta del archivo temporal subido por Livewire y lo movemos
-            $realPath = $this->imagen_upload->getRealPath();
-            copy($realPath, $destinationPath . '/' . $filename);
-            
-            // Guardamos en la base de datos la ruta relativa para Apache
-            $data['imagen'] = 'uploads/products/' . $filename;
+            if ($this->imagen_upload) {
+                $data['imagen'] = $this->imagen_upload->store('productos');
         }
 
         if ($this->isEditing) {
@@ -191,10 +177,12 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             <div class="admin-card animate-fade-in-up stagger-{{ ($index % 6) + 1 }}">
                 <!-- Image -->
                 <div class="relative overflow-hidden">
-                    @if($product->imagen)
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($product->imagen) }}" alt="{{ $product->nombre }}"
-                             class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
-                    @else
+                    <!-- Busca esto en tu grilla de productos y reemplázalo -->
+@if($product->imagen)
+    <img src="{{ asset($product->imagen) }}" alt="{{ $product->nombre }}"
+         class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
+@else
+
                         <div class="w-full h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
                             <svg class="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
