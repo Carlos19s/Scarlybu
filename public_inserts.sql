@@ -613,9 +613,7 @@ SET row_security = off;
 
 INSERT INTO public.categories VALUES (1, 'Gorras', 'gorras', 'Gorras de todos los estilos y marcas', NULL, NULL, true, '2026-06-25 08:17:26', '2026-06-25 08:17:26');
 INSERT INTO public.categories VALUES (2, 'Accesorios', 'accesorios', 'Accesorios de moda para cualquier ocasión', NULL, NULL, true, '2026-06-25 08:17:26', '2026-06-25 08:17:26');
-INSERT INTO public.categories VALUES (3, 'Cosméticos', 'cosmeticos', 'Productos de belleza y cuidado personal', NULL, NULL, true, '2026-06-25 08:17:26', '2026-06-25 08:17:26');
 INSERT INTO public.categories VALUES (4, 'Ropa', 'ropa', 'Ropa casual y de tendencia', NULL, NULL, true, '2026-06-25 08:17:26', '2026-06-25 08:17:26');
-INSERT INTO public.categories VALUES (5, 'Zapatos', 'zapatos', 'Calzado para todos los gustos', NULL, NULL, true, '2026-06-25 08:17:26', '2026-06-25 08:17:26');
 
 INSERT INTO public.roles VALUES (1, 'gerente', 'web', '2026-06-25 08:17:25', '2026-06-25 08:17:25');
 INSERT INTO public.roles VALUES (2, 'vendedor', 'web', '2026-06-25 08:17:25', '2026-06-25 08:17:25');

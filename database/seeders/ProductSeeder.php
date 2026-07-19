@@ -30,19 +30,7 @@ class ProductSeeder extends Seeder
                 'stock_minimo' => 5,
                 'activo' => true,
             ],
-            [
-                'nombre' => 'Pantalla',
-                'slug' => 'pantalla',
-                'descripcion' => 'Una pantalla de 90 pulgadas',
-                'imagen' => null,
-                'category_slug' => 'cosmeticos',
-                'precio_compra' => 5.00,
-                'precio_venta' => 200.00,
-                'iva_porcentaje' => 15.00,
-                'stock' => 30,
-                'stock_minimo' => 5,
-                'activo' => true,
-            ],
+
         ];
 
         foreach ($products as $productData) {

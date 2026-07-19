@@ -268,9 +268,7 @@ INSERT INTO public.cache (key, value, expiration) VALUES ('laravel-cache-categor
 
 INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (3, 'Gorras', 'gorras', 'Gorras de todos los estilos y marcas', NULL, NULL, true, '2026-06-10 07:44:42', '2026-06-10 07:44:42');
 INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (4, 'Accesorios', 'accesorios', 'Accesorios de moda para cualquier ocasión', NULL, NULL, true, '2026-06-10 07:44:44', '2026-06-10 07:44:44');
-INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (5, 'Cosméticos', 'cosmeticos', 'Productos de belleza y cuidado personal', NULL, NULL, true, '2026-06-10 07:44:45', '2026-06-10 07:44:45');
 INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (6, 'Ropa', 'ropa', 'Ropa casual y de tendencia', NULL, NULL, true, '2026-06-10 07:44:46', '2026-06-10 07:44:46');
-INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (7, 'Zapatos', 'zapatos', 'Calzado para todos los gustos', NULL, NULL, true, '2026-06-10 07:44:47', '2026-06-10 07:44:47');
 INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (1, 'Gorra con Malla', 'gorra-con-malla', 'Gorras con malla', 3, NULL, true, '2026-06-10 07:04:16', '2026-06-10 08:52:59');
 INSERT INTO public.categories (id, nombre, slug, descripcion, parent_id, imagen, activa, created_at, updated_at) VALUES (2, 'Gorras Rojas', 'gorras-rojas', '', 3, NULL, true, '2026-06-10 07:04:56', '2026-06-10 08:52:59');
 
