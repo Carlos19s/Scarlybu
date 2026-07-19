@@ -37,15 +37,15 @@ RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Instalar dependencias de PHP para producción
-# Si composer.lock no está actualizado respecto a composer.json, usar update durante el build
 RUN composer update --no-dev --optimize-autoloader
 
 # Instalar dependencias de Node y compilar el frontend
 RUN npm install
 RUN npm run build
 
-# Configurar permisos requeridos por Laravel para la escritura de logs y caché
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# CAMBIO AQUÍ: Asignamos propietario (www-data) Y permisos de escritura recursivos (775)
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Apuntar Apache directamente a la carpeta 'public' de Laravel
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
@@ -58,6 +58,5 @@ RUN a2enmod rewrite
 # Exponer el puerto por defecto
 EXPOSE 80
 
-# Comando de arranque seguro
+# Comando de arranque seguro (SIN MIGRACIONES)
 CMD php artisan config:clear && apache2-foreground
-

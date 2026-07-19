@@ -82,7 +82,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->showModal = true;
     }
 
-    public function save(): void
+        public function save(): void
     {
         $this->validate([
             'nombre' => 'required|string|max:255',
@@ -111,8 +111,23 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'activo' => $this->activo,
         ];
 
+        // CAMBIO AQUÍ: Forzar el guardado directo en la carpeta pública real
         if ($this->imagen_upload) {
-            $data['imagen'] = $this->imagen_upload->store('productos', 'public');
+            // Generamos un nombre único para evitar duplicados de gorras
+            $filename = time() . '_' . Str::random(10) . '.' . $this->imagen_upload->getClientOriginalExtension();
+            
+            // Creamos físicamente la ruta pública si no existe y movemos el archivo ahí
+            $destinationPath = public_path('uploads/products');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0775, true);
+            }
+            
+            // Obtenemos la ruta absoluta del archivo temporal subido por Livewire y lo movemos
+            $realPath = $this->imagen_upload->getRealPath();
+            copy($realPath, $destinationPath . '/' . $filename);
+            
+            // Guardamos en la base de datos la ruta relativa para Apache
+            $data['imagen'] = 'uploads/products/' . $filename;
         }
 
         if ($this->isEditing) {
@@ -124,6 +139,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->showModal = false;
         $this->resetForm();
     }
+
 
     public function delete(Product $product): void
     {
