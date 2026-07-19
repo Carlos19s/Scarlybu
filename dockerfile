@@ -50,4 +50,5 @@ RUN a2enmod rewrite
 EXPOSE 80
 
 # Comando de arranque seguro
-CMD php artisan config:clear && php artisan migrate --force && apache2-foreground
+CMD php artisan config:clear && apache2-foreground
+
