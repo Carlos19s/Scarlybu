@@ -1,7 +1,7 @@
 # Usar la imagen oficial de PHP 8.4 con Apache compatible con Laravel 13
 FROM php:8.4-apache
 
-# Instalar dependencias básicas del sistema y librerías de desarrollo para PostgreSQL
+# Instalar dependencias básicas del sistema y librerías cliente nativas de PostgreSQL
 RUN apt-get update && apt-get install -y \
     zip \
     unzip \
@@ -10,10 +10,10 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar extensiones de PHP necesarias para Laravel de forma confiable
+# Instalar EXCLUSIVAMENTE las extensiones de PHP para PostgreSQL y Laravel
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && \
-    install-php-extensions pdo pdo_pgsql pgsql pdo_mysql gd zip intl bcmath opcache
+    install-php-extensions pdo pdo_pgsql pgsql zip intl bcmath opcache
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
