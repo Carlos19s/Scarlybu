@@ -176,7 +176,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                 <!-- Image -->
                 <div class="relative overflow-hidden">
                     @if($product->imagen)
-                        <img src="{{ asset('storage/' . $product->imagen) }}" alt="{{ $product->nombre }}"
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($product->imagen) }}" alt="{{ $product->nombre }}"
                              class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
                     @else
                         <div class="w-full h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
@@ -285,7 +285,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                     @elseif($isEditing && $editingProduct?->imagen)
                         <div class="mt-2">
                             <span class="text-xs text-slate-500 block mb-1">Imagen actual:</span>
-                            <img src="{{ asset('storage/' . $editingProduct->imagen) }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($editingProduct->imagen) }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
                         </div>
                     @endif
                 </div>
