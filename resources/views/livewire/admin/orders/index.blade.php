@@ -2,6 +2,7 @@
 
 use Livewire\Volt\Component;
 use App\Models\Order;
+use App\Models\Product;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -45,7 +46,24 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
         ]);
 
         if ($this->viewingOrder) {
-            $this->viewingOrder->update(['estado' => $this->estado]);
+            $oldEstado = $this->viewingOrder->estado;
+            $newEstado = $this->estado;
+
+            // If changing TO cancelado from a non-cancelado state → restore stock
+            if ($newEstado === 'cancelado' && $oldEstado !== 'cancelado') {
+                foreach ($this->viewingOrder->items as $item) {
+                    Product::where('id', $item->product_id)->increment('stock', $item->cantidad);
+                }
+            }
+
+            // If changing FROM cancelado to a non-cancelado state → deduct stock
+            if ($oldEstado === 'cancelado' && $newEstado !== 'cancelado') {
+                foreach ($this->viewingOrder->items as $item) {
+                    Product::where('id', $item->product_id)->decrement('stock', $item->cantidad);
+                }
+            }
+
+            $this->viewingOrder->update(['estado' => $newEstado]);
         }
         $this->showModal = false;
     }

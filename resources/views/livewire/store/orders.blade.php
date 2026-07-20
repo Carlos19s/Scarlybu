@@ -2,12 +2,33 @@
 
 use Livewire\Volt\Component;
 use App\Models\Order;
+use App\Models\Product;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\WithPagination;
 
 new #[Layout('layouts.store')] #[Title('Mis Notas de Pedido - Scarlybu')] class extends Component {
     use WithPagination;
+
+    public function cancelOrder(Order $order): void
+    {
+        // Verify ownership
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Only allow cancellation for certain states
+        if (! in_array($order->estado, ['no_revisado', 'en_proceso'])) {
+            return;
+        }
+
+        // Restore stock for each item
+        foreach ($order->items as $item) {
+            Product::where('id', $item->product_id)->increment('stock', $item->cantidad);
+        }
+
+        $order->update(['estado' => 'cancelado']);
+    }
 
     public function with(): array
     {
@@ -42,7 +63,7 @@ new #[Layout('layouts.store')] #[Title('Mis Notas de Pedido - Scarlybu')] class 
                         <th class="py-4 px-6">Dirección de Envío</th>
                         <th class="py-4 px-6">Total</th>
                         <th class="py-4 px-6">Estado</th>
-                        <th class="py-4 px-6 text-right">Comprobante</th>
+                        <th class="py-4 px-6 text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
@@ -78,10 +99,20 @@ new #[Layout('layouts.store')] #[Title('Mis Notas de Pedido - Scarlybu')] class 
                                 </span>
                             </td>
                             <td class="py-4 px-6 text-right">
-                                <a href="{{ route('store.order.pdf', $order) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
-                                    <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                    Descargar PDF
-                                </a>
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('store.order.pdf', $order) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        PDF
+                                    </a>
+                                    @if(in_array($order->estado, ['no_revisado', 'en_proceso']))
+                                        <button wire:click="cancelOrder({{ $order->id }})"
+                                                wire:confirm="¿Seguro que deseas cancelar este pedido? Los productos volverán al inventario."
+                                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-semibold rounded-xl text-xs transition-all">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            Cancelar
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -108,3 +139,4 @@ new #[Layout('layouts.store')] #[Title('Mis Notas de Pedido - Scarlybu')] class 
         @endif
     </div>
 </div>
+

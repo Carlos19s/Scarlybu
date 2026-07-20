@@ -32,6 +32,10 @@ new #[Layout('layouts.store')] class extends Component {
 
     public function addToCart()
     {
+        if ($this->product->stock <= 0) {
+            return;
+        }
+
         $cart = session()->get('cart', []);
         $id = $this->product->id;
 

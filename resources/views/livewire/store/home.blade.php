@@ -15,6 +15,11 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
     public function addToCart(int $productId): void
     {
         $product = Product::findOrFail($productId);
+
+        if ($product->stock <= 0) {
+            return;
+        }
+
         $cart = session()->get('cart', []);
 
         if (isset($cart[$productId])) {
@@ -183,11 +188,15 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                                 <span class="text-lg font-black" style="color:#ff6b81;">${{ number_format($promo->precio_promocion, 2) }}</span>
                                 <span class="text-xs line-through mb-0.5" style="color:#666;">${{ number_format($product->precio_venta, 2) }}</span>
                             </div>
-                            <button wire:click="addToCart({{ $product->id }})"
-                                    class="mt-2 w-full py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-95"
-                                    style="background:linear-gradient(135deg,#55d6ff,#38b2ac);color:#0d1117;">
-                                + Agregar al carrito
-                            </button>
+                            @if($product->stock > 0)
+                                <button wire:click="addToCart({{ $product->id }})"
+                                        class="mt-2 w-full py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-95"
+                                        style="background:linear-gradient(135deg,#55d6ff,#38b2ac);color:#0d1117;">
+                                    + Agregar al carrito
+                                </button>
+                            @else
+                                <span class="mt-2 block w-full py-1.5 rounded-xl text-xs font-bold text-center" style="background:rgba(255,255,255,0.06);color:#888;">Agotado</span>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -410,11 +419,15 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                                     <span class="text-base font-bold" style="color:#f2f2f7;">${{ number_format($product->precio_venta, 2) }}</span>
                                 @endif
                             </div>
-                            <button wire:click="addToCart({{ $product->id }})"
-                                    class="p-2 rounded-xl transition-all hover:scale-110 active:scale-95"
-                                    style="background:linear-gradient(135deg,#55d6ff,#38b2ac);color:#0d1117;box-shadow:0 4px 15px rgba(85,214,255,0.25);">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                            </button>
+                            @if($product->stock > 0)
+                                <button wire:click="addToCart({{ $product->id }})"
+                                        class="p-2 rounded-xl transition-all hover:scale-110 active:scale-95"
+                                        style="background:linear-gradient(135deg,#55d6ff,#38b2ac);color:#0d1117;box-shadow:0 4px 15px rgba(85,214,255,0.25);">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                </button>
+                            @else
+                                <span class="p-2 rounded-xl text-[10px] font-bold" style="background:rgba(255,255,255,0.06);color:#888;">Agotado</span>
+                            @endif
                         </div>
                     </div>
                 </div>

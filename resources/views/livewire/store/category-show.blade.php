@@ -23,6 +23,11 @@ new #[Layout('layouts.store')] class extends Component {
     public function addToCart(int $productId)
     {
         $product = Product::findOrFail($productId);
+
+        if ($product->stock <= 0) {
+            return;
+        }
+
         $cart = session()->get('cart', []);
 
         if (isset($cart[$productId])) {
@@ -136,9 +141,13 @@ new #[Layout('layouts.store')] class extends Component {
                                     <span class="text-[10px] text-slate-400 block">IVA incluido</span>
                                 @endif
                             </div>
-                            <button wire:click="addToCart({{ $product->id }})" class="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg transition-all hover:scale-110 active:scale-95">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                            </button>
+                            @if($product->stock > 0)
+                                <button wire:click="addToCart({{ $product->id }})" class="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg transition-all hover:scale-110 active:scale-95">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                </button>
+                            @else
+                                <span class="px-2 py-1 rounded-full text-[10px] font-bold text-red-400 bg-red-500/10">Agotado</span>
+                            @endif
                         </div>
                         @if($product->stock <= $product->stock_minimo && $product->stock > 0)
                             <span class="text-xs text-amber-500 font-medium mt-1 block">¡Últimas unidades!</span>

@@ -46,15 +46,15 @@
             </div>
             <div class="box">
                 <div class="company-name">Scarlybu C.A.</div>
-                <div>Dirección matriz: Quito, Ecuador</div>
-                <div>Teléfono: +593 99 999 9999</div>
-                <div>Correo: ventas@scarlybu.com</div>
+                <div>Dirección matriz: Av.Eugenio Espejo & Reinaldo Chavez</div>
+                <div>Teléfono: +593 99 132 9846</div>
+                <div>Correo: Por definir</div>
             </div>
         </div>
         
         <div class="col-right">
             <div class="box">
-                <div style="font-size: 14px; margin-bottom: 10px;">RUC: 0000000000001</div>
+                <div style="font-size: 14px; margin-bottom: 10px;">CEDULA/RUC: 21239831</div>
                 <div class="doc-title">NOTA DE PEDIDO</div>
                 <div>No. {{ $order->numero_pedido }}</div>
                 <br>
@@ -116,7 +116,7 @@
             <tr>
                 <td>{{ str_pad($item->product_id, 4, '0', STR_PAD_LEFT) }}</td>
                 <td>{{ $item->cantidad }}</td>
-                <td class="text-left">{{ $item->product->name ?? 'Producto' }}</td>
+                <td class="text-left">{{ $item->product->nombre ?? 'Producto' }}</td>
                 <td class="text-right">{{ number_format((float) $item->precio_unitario, 2) }}</td>
                 <td class="text-right">0.00</td>
                 <td class="text-right">{{ number_format((float) $item->subtotal, 2) }}</td>
