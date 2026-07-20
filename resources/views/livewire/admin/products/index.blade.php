@@ -112,7 +112,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         ];
 
         if ($this->imagen_upload) {
-            $data['imagen'] = $this->imagen_upload->storePublicly('productos', 'public');
+           $data['imagen'] = $this->imagen_upload->storePublicly('productos', 'render_disk');
         }
 
         if ($this->isEditing) {
@@ -177,7 +177,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                 <!-- Image -->
                 <div class="relative overflow-hidden">
                     @if($product->imagen)
-                        <img src="{{ asset('storage/' . $product->imagen) }}" alt="{{ $product->nombre }}"
+                        <img src="{{ Storage::disk('render_disk')->url($product->imagen) }}" alt="{{ $product->nombre }}"
                              class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
 @else
 
