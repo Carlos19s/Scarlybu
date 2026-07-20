@@ -19,7 +19,7 @@
                 ¡Hola, {{ explode(' ', $userName)[0] }}! 👋
             </h1>
             <p class="text-slate-500 dark:text-slate-400 mt-1">
-                Panel de {{ ucfirst(str_replace('_', ' ', $role)) }} · {{ now()->translatedFormat('l, d \\d\\e F Y') }}
+                Panel de {{ $userName }} · {{ now()->translatedFormat('l, d \\d\\e F Y') }}
             </p>
         </div>
 
