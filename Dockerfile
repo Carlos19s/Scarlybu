@@ -37,7 +37,7 @@ RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Instalar dependencias de PHP para producción
-RUN composer update --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
 # Instalar dependencias de Node y compilar el frontend
 RUN npm install
@@ -55,8 +55,14 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Habilitar el módulo rewrite de Apache (crucial para las rutas de Laravel)
 RUN a2enmod rewrite
 
-# Exponer el puerto por defecto
-EXPOSE 80
-
-# Startup: crea symlinks y arranca Apache.
-CMD sh -lc 'if [ -n "${RENDER_DISK_PATH:-}" ]; then mkdir -p "${RENDER_DISK_PATH}" && chown -R www-data:www-data "${RENDER_DISK_PATH}" && rm -rf /var/www/html/public/uploads && ln -s "${RENDER_DISK_PATH}" /var/www/html/public/uploads; fi && mkdir -p /var/www/html/storage/app/public /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs && rm -rf /var/www/html/public/storage && ln -s /var/www/html/storage/app/public /var/www/html/public/storage && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && php artisan config:clear && php artisan cache:clear && php artisan view:clear && apache2-foreground'
+# Startup: configura el puerto dinámico de Render y arranca Apache
+CMD sh -c "\
+    mkdir -p storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs && \
+    php artisan storage:link || true && \
+    php artisan optimize:clear && \
+    sed -i 's/Listen 80/Listen '\${PORT}'/g' /etc/apache2/ports.conf && \
+    sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'\${PORT}'>/g' /etc/apache2/sites-available/*.conf && \
+    apache2-foreground"
