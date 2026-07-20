@@ -21,6 +21,15 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
         }
 
         $cart = session()->get('cart', []);
+        $currentInCart = isset($cart[$productId]) ? $cart[$productId]['cantidad'] : 0;
+
+        // Can't add more than available stock
+        if ($currentInCart >= $product->stock) {
+            return;
+        }
+
+        // Decrement stock immediately (reserve)
+        $product->decrement('stock');
 
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;

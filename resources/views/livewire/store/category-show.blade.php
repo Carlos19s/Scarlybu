@@ -29,6 +29,13 @@ new #[Layout('layouts.store')] class extends Component {
         }
 
         $cart = session()->get('cart', []);
+        $currentInCart = isset($cart[$productId]) ? $cart[$productId]['cantidad'] : 0;
+
+        if ($currentInCart >= $product->stock) {
+            return;
+        }
+
+        $product->decrement('stock');
 
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;

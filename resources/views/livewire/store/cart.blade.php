@@ -69,6 +69,13 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
     {
         $cart = session()->get('cart', []);
         if (isset($cart[$productId])) {
+            $product = Product::find($productId);
+            if (! $product || $product->stock <= 0) {
+                return;
+            }
+
+            // Reserve 1 unit
+            $product->decrement('stock');
             $cart[$productId]['cantidad']++;
             session()->put('cart', $cart);
             $this->dispatch('cart-updated');
@@ -79,6 +86,9 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
     {
         $cart = session()->get('cart', []);
         if (isset($cart[$productId])) {
+            // Restore 1 unit
+            Product::where('id', $productId)->increment('stock');
+
             if ($cart[$productId]['cantidad'] > 1) {
                 $cart[$productId]['cantidad']--;
             } else {
@@ -92,13 +102,24 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
     public function removeItem(int $productId)
     {
         $cart = session()->get('cart', []);
-        unset($cart[$productId]);
-        session()->put('cart', $cart);
-        $this->dispatch('cart-updated');
+        if (isset($cart[$productId])) {
+            // Restore all reserved units
+            Product::where('id', $productId)->increment('stock', $cart[$productId]['cantidad']);
+            unset($cart[$productId]);
+            session()->put('cart', $cart);
+            $this->dispatch('cart-updated');
+        }
     }
 
     public function clearCart()
     {
+        $cart = session()->get('cart', []);
+
+        // Restore stock for all items
+        foreach ($cart as $productId => $item) {
+            Product::where('id', $productId)->increment('stock', $item['cantidad']);
+        }
+
         session()->forget('cart');
         $this->dispatch('cart-updated');
     }
@@ -159,9 +180,7 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
                 'iva_porcentaje' => 15.00,
                 'subtotal' => $item['precio'] * $item['cantidad'],
             ]);
-
-            // Decrease stock
-            Product::where('id', $productId)->decrement('stock', $item['cantidad']);
+            // Stock already reserved when added to cart — no decrement needed here
         }
 
         session()->forget('cart');

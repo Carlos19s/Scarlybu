@@ -18,6 +18,13 @@ new #[Layout('layouts.store')] #[Title('Ofertas y Promociones - Scarlybu')] clas
         }
 
         $cart = session()->get('cart', []);
+        $currentInCart = isset($cart[$productId]) ? $cart[$productId]['cantidad'] : 0;
+
+        if ($currentInCart >= $product->stock) {
+            return;
+        }
+
+        $product->decrement('stock');
 
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;

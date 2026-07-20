@@ -32,12 +32,21 @@ new #[Layout('layouts.store')] class extends Component {
 
     public function addToCart()
     {
-        if ($this->product->stock <= 0) {
+        if ($this->product->stock <= 0 || $this->cantidad > $this->product->stock) {
             return;
         }
 
         $cart = session()->get('cart', []);
         $id = $this->product->id;
+        $currentInCart = isset($cart[$id]) ? $cart[$id]['cantidad'] : 0;
+
+        // Check total won't exceed stock
+        if (($currentInCart + $this->cantidad) > $this->product->stock) {
+            return;
+        }
+
+        // Reserve stock
+        $this->product->decrement('stock', $this->cantidad);
 
         if (isset($cart[$id])) {
             $cart[$id]['cantidad'] += $this->cantidad;
