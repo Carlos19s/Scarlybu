@@ -59,7 +59,14 @@ return [
             'throw' => false,
             'report' => false,
         ],
-
+'render_disk' => [
+    'driver' => 'local',
+    'root' => env('RENDER_DISK_PATH', '/var/data/uploads'),
+    'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/uploads',
+    'visibility' => 'public',
+    'throw' => false,
+    'report' => false,
+],
 
     ],
 
