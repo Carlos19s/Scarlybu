@@ -56,5 +56,11 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Habilitar el módulo rewrite de Apache
 RUN a2enmod rewrite
 
-# STARTUP: Corrige los puertos dinámicos usando comillas dobles limpias para la ejecución del shell
-CMD sh -c "mkdir -p storage/app/livewire-tmp && chown -R www-data:www-data storage && chmod -R 775 storage && php artisan config:clear && php artisan cache:clear && php artisan view:clear && sed -i 's/Listen 80/Listen '$PORT'/g' /etc/apache2/ports.conf && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'$PORT'>/g' /etc/apache2/sites-available/*.conf && apache2-foreground"
+# Startup optimizado para Cloudinary: limpia la caché y maneja el binding dinámico de puertos
+CMD sh -c "\
+    php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan view:clear && \
+    sed -i 's/Listen 80/Listen '\${PORT}'/g' /etc/apache2/ports.conf && \
+    sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'\${PORT}'>/g' /etc/apache2/sites-available/*.conf && \
+    apache2-foreground"
