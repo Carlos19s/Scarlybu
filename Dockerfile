@@ -58,18 +58,5 @@ RUN a2enmod rewrite
 # Exponer el puerto por defecto
 EXPOSE 80
 
-# SOLUCIÓN ADAPTADA A TU DISCO DE RENDER: Crea la carpeta física /public/storage y enlaza directamente tu volumen dentro de ella.
-CMD mkdir -p /var/www/html/storage/app/public/productos \
-    /var/www/html/storage/framework/cache/data \
-    /var/www/html/storage/framework/sessions \
-    /var/www/html/storage/framework/views \
-    /var/www/html/storage/logs && \
-    rm -rf /var/www/html/public/storage /var/www/html/public/uploads && \
-    mkdir -p /var/www/html/public/storage && \
-    ln -s /var/www/html/storage/app/public/productos /var/www/html/public/storage/productos && \
-    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && \
-    php artisan config:clear && \
-    php artisan cache:clear && \
-    php artisan view:clear && \
-    apache2-foreground
+# SOLUCIÓN ADAPTADA A TU DISCO DE RENDER: enlaza el volumen persistente a public/uploads cuando esté disponible.
+CMD sh -lc 'if [ -n "${RENDER_DISK_PATH:-}" ]; then mkdir -p "${RENDER_DISK_PATH}" && chown -R www-data:www-data "${RENDER_DISK_PATH}" && rm -rf /var/www/html/public/uploads && ln -s "${RENDER_DISK_PATH}" /var/www/html/public/uploads; fi && mkdir -p /var/www/html/storage/app/public /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs && rm -rf /var/www/html/public/storage && ln -s /var/www/html/storage/app/public /var/www/html/public/storage && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage && php artisan config:clear && php artisan cache:clear && php artisan view:clear && apache2-foreground'

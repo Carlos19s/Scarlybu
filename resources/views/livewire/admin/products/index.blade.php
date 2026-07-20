@@ -113,7 +113,10 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
 
         // CAMBIO AQUÍ: Forzar el guardado directo en la carpeta pública real
             if ($this->imagen_upload) {
-                $data['imagen'] = $this->imagen_upload->storePublicly('productos');
+                $disk = in_array(env('FILESYSTEM_DISK', 'public'), ['render_disk', 's3'], true)
+                    ? env('FILESYSTEM_DISK')
+                    : 'public';
+                $data['imagen'] = $this->imagen_upload->storePublicly('productos', $disk);
             }
 
         if ($this->isEditing) {

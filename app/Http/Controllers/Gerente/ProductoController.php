@@ -46,7 +46,10 @@ class ProductoController extends Controller
         $data['slug'] = Str::slug($data['nombre']).'-'.uniqid();
 
         if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')->storePublicly('productos');
+            $disk = in_array(env('FILESYSTEM_DISK', 'public'), ['render_disk', 's3'], true)
+                ? env('FILESYSTEM_DISK')
+                : 'public';
+            $data['imagen'] = $request->file('imagen')->storePublicly('productos', $disk);
         }
 
         Product::create($data);
@@ -76,7 +79,10 @@ class ProductoController extends Controller
         ]);
 
         if ($request->hasFile('imagen')) {
-            $data['imagen'] = $request->file('imagen')->storePublicly('productos');
+            $disk = in_array(env('FILESYSTEM_DISK', 'public'), ['render_disk', 's3'], true)
+                ? env('FILESYSTEM_DISK')
+                : 'public';
+            $data['imagen'] = $request->file('imagen')->storePublicly('productos', $disk);
         }
 
         $producto->update($data);
