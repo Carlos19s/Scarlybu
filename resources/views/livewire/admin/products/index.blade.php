@@ -83,7 +83,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->showModal = true;
     }
 
-            public function save(): void
+                public function save(): void
     {
         $this->validate([
             'nombre' => 'required|string|max:255',
@@ -92,7 +92,8 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'precio_venta' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
-            'imagen_upload' => 'nullable|max:2048', 
+            // Dejamos la validación abierta para que no choque con los tiempos de carga en la nube
+            'imagen_upload' => 'nullable', 
         ]);
 
         if (empty($this->slug)) {
@@ -112,10 +113,17 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'activo' => $this->activo,
         ];
 
-        // FORZADO EXPLICITO DE CREDENCIALES DIRECTAMENTE EN LA SUBIDA
+        // FORZADO EXPLICITO: Si Livewire se retrasa, leemos directamente el archivo temporal del servidor
+        $realPath = null;
         if ($this->imagen_upload && method_exists($this->imagen_upload, 'getRealPath')) {
+            $realPath = $this->imagen_upload->getRealPath();
+        } elseif (isset($_FILES['components']['tmp_name'])) {
+            // Respaldo nativo si la latencia de red de Render congela el estado de Livewire
+            $realPath = $_FILES['components']['tmp_name'];
+        }
+
+        if ($realPath && file_exists($realPath)) {
             try {
-                // Instanciamos el cliente usando los strings directo del entorno inyectado de Render
                 $cloudinary = new \Cloudinary\Cloudinary([
                     'cloud' => [
                         'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
@@ -124,21 +132,15 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                     ],
                 ]);
 
-                $upload = $cloudinary->uploadApi()->upload(
-                    $this->imagen_upload->getRealPath(),
-                    [
-                        'folder' => 'productos'
-                    ]
-                );
+                $upload = $cloudinary->uploadApi()->upload($realPath, [
+                    'folder' => 'productos'
+                ]);
 
-                // Asignamos la url segura directo al array de inserción
                 $data['imagen'] = $upload['secure_url'];
             } catch (\Exception $e) {
-                // Si hay un error, dejamos constancia en los logs del servidor
-                logger('Error crítico en Cloudinary: ' . $e->getMessage());
+                logger('Error crítico subiendo a Cloudinary: ' . $e->getMessage());
             }
         } else if ($this->isEditing) {
-            // AQUÍ: Si estás editando y no subiste una foto nueva, mantiene la que ya tenía la gorra
             $data['imagen'] = $this->editingProduct->imagen;
         }
 
@@ -151,6 +153,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->showModal = false;
         $this->resetForm();
     }
+
 
 
 
