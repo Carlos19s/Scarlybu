@@ -160,7 +160,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                         <a href="{{ route('store.product', $product->slug) }}" wire:navigate>
                             <div class="relative aspect-square overflow-hidden" style="background:#292b33;">
                                 @if($product->imagen)
-                                    <img src="{{ asset('storage/' . $product->imagen) }}"
+                                    <img src="{{ $product->imagen_url }}"
                                          alt="{{ $product->nombre }}"
                                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                 @else
@@ -371,7 +371,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                     <a href="{{ route('store.product', $product->slug) }}" wire:navigate>
                         <div class="relative overflow-hidden" style="aspect-ratio:1;background:#292b33;">
                             @if($product->imagen)
-                                <img src="{{ asset('storage/' . $product->imagen) }}"
+                                <img src="{{ $product->imagen_url }}"
                                      alt="{{ $product->nombre }}"
                                      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             @else

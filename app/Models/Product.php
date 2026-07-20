@@ -49,7 +49,7 @@ class Product extends Model
         if (! $this->imagen) {
             return null;
         }
-
+        
         return asset('storage/'.$this->imagen);
     }
 

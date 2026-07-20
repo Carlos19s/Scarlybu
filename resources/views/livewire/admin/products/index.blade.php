@@ -113,32 +113,29 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'activo' => $this->activo,
         ];
 
-        // FORZADO EXPLICITO: Si Livewire se retrasa, leemos directamente el archivo temporal del servidor
-        $realPath = null;
-        if ($this->imagen_upload && method_exists($this->imagen_upload, 'getRealPath')) {
-            $realPath = $this->imagen_upload->getRealPath();
-        } elseif (isset($_FILES['components']['tmp_name'])) {
-            // Respaldo nativo si la latencia de red de Render congela el estado de Livewire
-            $realPath = $_FILES['components']['tmp_name'];
-        }
-
-        if ($realPath && file_exists($realPath)) {
+        if ($this->imagen_upload) {
             try {
                 $cloudinary = new \Cloudinary\Cloudinary([
                     'cloud' => [
-                        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                        'api_key'    => env('CLOUDINARY_API_KEY'),
-                        'api_secret' => env('CLOUDINARY_API_SECRET'),
+                        'cloud_name' => config('services.cloudinary.cloud_name'),
+                        'api_key'    => config('services.cloudinary.api_key'),
+                        'api_secret' => config('services.cloudinary.api_secret'),
                     ],
                 ]);
 
-                $upload = $cloudinary->uploadApi()->upload($realPath, [
-                    'folder' => 'productos'
+                $tempPath = $this->imagen_upload->store('cloudinary-tmp');
+                $fullPath = \Illuminate\Support\Facades\Storage::path($tempPath);
+
+                $upload = $cloudinary->uploadApi()->upload($fullPath, [
+                    'folder' => 'productos',
                 ]);
 
                 $data['imagen'] = $upload['secure_url'];
+                 // Clean up the temp file
+                \Illuminate\Support\Facades\Storage::delete($tempPath);
             } catch (\Exception $e) {
-                logger('Error crítico subiendo a Cloudinary: ' . $e->getMessage());
+                session()->flash('error', 'Error subiendo imagen: ' . $e->getMessage());
+                logger('Error Cloudinary: ' . $e->getMessage());
             }
         } else if ($this->isEditing) {
             $data['imagen'] = $this->editingProduct->imagen;
@@ -208,7 +205,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                 <!-- Image -->
                 <div class="relative overflow-hidden">
                     @if($product->imagen)
-                        <img src="{{ $product->imagen}}" alt="{{ $product->nombre }}"
+                        <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}"
                              class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
 @else
 
@@ -281,6 +278,11 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             </div>
 
             <form wire:submit="save" class="space-y-4">
+                 @if(session('error'))
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+                        {{ session('error') }}
+                    </div>
+                @endif
                 <flux:input wire:model="nombre" label="Nombre" required />
                 <flux:input wire:model="slug" label="Slug (opcional)" placeholder="Se generará automáticamente" />
 
@@ -310,15 +312,19 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Imagen del Producto</label>
                     <input type="file" wire:model="imagen_upload" accept="image/*"
                            class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-900/30 dark:file:text-emerald-400 dark:hover:file:bg-emerald-900/50 border border-slate-200 dark:border-slate-700 rounded-lg p-2">
+                    <div wire:loading wire:target="imagen_upload" class="mt-2 flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+                        <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        Subiendo imagen...
+                    </div>
                     @if ($imagen_upload)
                         <div class="mt-2">
-                            <span class="text-xs text-slate-500 block mb-1">Vista previa:</span>
-                            <img src="{{ $imagen_upload->temporaryUrl() }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
-                        </div>
+                     <span class="text-xs text-emerald-600 dark:text-emerald-400 block mb-1">✓ Imagen lista para guardar:</span>
+                            <img src="{{ $imagen_upload->temporaryUrl() }}" class="w-20 h-20 object-cover rounded-lg border border-emerald-300 dark:border-emerald-700">        
+                    </div>
                     @elseif($isEditing && $editingProduct?->imagen)
                         <div class="mt-2">
                             <span class="text-xs text-slate-500 block mb-1">Imagen actual:</span>
-                            <img src="{{ $editingProduct->imagen }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
+                        <img src="{{ $editingProduct->imagen_url }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">    
                         </div>
                     @endif
                 </div>
@@ -327,8 +333,14 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
 
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:button wire:click="$set('showModal', false)" variant="ghost">Cancelar</flux:button>
-                    <flux:button type="submit" variant="primary" class="!bg-emerald-600 hover:!bg-emerald-700">Guardar</flux:button>
-                </div>
+                    <flux:button type="submit" variant="primary" class="!bg-emerald-600 hover:!bg-emerald-700" wire:loading.attr="disabled" wire:target="save">
+                        <span wire:loading.remove wire:target="save">Guardar</span>
+                        <span wire:loading wire:target="save" class="flex items-center gap-2">
+                            <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            Subiendo a Cloudinary...
+                        </span>
+                    </flux:button>
+            </div>
             </form>
         </div>
     </flux:modal>
