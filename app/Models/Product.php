@@ -49,7 +49,12 @@ class Product extends Model
         if (! $this->imagen) {
             return null;
         }
-        
+
+        // If it's already a full URL (e.g. Cloudinary), return as-is
+        if (str_starts_with($this->imagen, 'http')) {
+            return $this->imagen;
+        }
+
         return asset('storage/'.$this->imagen);
     }
 
