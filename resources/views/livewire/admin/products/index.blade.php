@@ -8,6 +8,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Illuminate\Support\Str;
+use Cloudinary\Cloudinary;
 
 new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
     use WithPagination;
@@ -112,8 +113,24 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         ];
 
         if ($this->imagen_upload) {
-           $data['imagen'] = $this->imagen_upload->storePublicly('productos', 'render_disk');
-        }
+
+    $cloudinary = new Cloudinary([
+        'cloud' => [
+            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+            'api_key'    => env('CLOUDINARY_API_KEY'),
+            'api_secret' => env('CLOUDINARY_API_SECRET'),
+        ],
+    ]);
+
+    $upload = $cloudinary->uploadApi()->upload(
+        $this->imagen_upload->getRealPath(),
+        [
+            'folder' => 'productos'
+        ]
+    );
+
+    $data['imagen'] = $upload['secure_url'];
+}
 
         if ($this->isEditing) {
             $this->editingProduct->update($data);
@@ -177,7 +194,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                 <!-- Image -->
                 <div class="relative overflow-hidden">
                     @if($product->imagen)
-                        <img src="{{ Storage::disk('render_disk')->url($product->imagen) }}" alt="{{ $product->nombre }}"
+                        <img src="{{ $product->imagen}}" alt="{{ $product->nombre }}"
                              class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
 @else
 
@@ -287,7 +304,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                     @elseif($isEditing && $editingProduct?->imagen)
                         <div class="mt-2">
                             <span class="text-xs text-slate-500 block mb-1">Imagen actual:</span>
-                            <img src="{{ asset('storage/' . $editingProduct->imagen) }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
+                            <img src="{{ $editingProduct->imagen }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
                         </div>
                     @endif
                 </div>
