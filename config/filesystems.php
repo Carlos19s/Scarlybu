@@ -75,7 +75,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
-    ],
+    public_path('uploads') => env('RENDER_DISK_PATH', storage_path('app/public')),
+],
 
 ];
