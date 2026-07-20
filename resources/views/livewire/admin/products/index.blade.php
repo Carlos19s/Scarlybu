@@ -83,7 +83,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->showModal = true;
     }
 
-    public function save(): void
+        public function save(): void
     {
         $this->validate([
             'nombre' => 'required|string|max:255',
@@ -92,7 +92,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'precio_venta' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
-            'imagen_upload' => 'nullable|image|max:2048',
+            'imagen_upload' => 'nullable|max:2048', // Quitamos la regla estricta 'image' temporalmente por si el tipo MIME varía en Render
         ]);
 
         if (empty($this->slug)) {
@@ -103,27 +103,29 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'nombre' => $this->nombre,
             'slug' => $this->slug,
             'descripcion' => $this->descripcion,
-            'category_id' => $this->category_id,
-            'precio_compra' => $this->precio_compra,
-            'precio_venta' => $this->precio_venta,
+            'category_id' => (int)$this->category_id,
+            'precio_compra' => (float)$this->precio_compra,
+            'precio_venta' => (float)$this->precio_venta,
             'iva_porcentaje' => 15.00,
-            'stock' => $this->stock,
-            'stock_minimo' => $this->stock_minimo,
+            'stock' => (int)$this->stock,
+            'stock_minimo' => (int)$this->stock_minimo,
             'activo' => $this->activo,
         ];
 
-                        if ($this->imagen_upload) {
-            // Subida limpia usando el contenedor de servicios nativo del paquete
-            $uploadedFile = app(\CloudinaryLabs\CloudinaryLaravel\CloudinaryEngine::class)
-                ->uploadFile($this->imagen_upload->getRealPath(), [
-                    'folder' => 'productos'
-                ]);
+        // Forzamos la subida leyendo directamente el archivo real si Livewire lo capturó
+        if ($this->imagen_upload && method_exists($this->imagen_upload, 'getRealPath')) {
+            try {
+                $uploadedFile = app(\CloudinaryLabs\CloudinaryLaravel\CloudinaryEngine::class)
+                    ->uploadFile($this->imagen_upload->getRealPath(), [
+                        'folder' => 'productos'
+                    ]);
 
-            // Almacena la URL pública directa en la base de datos
-            $data['imagen'] = $uploadedFile->getSecurePath();
+                $data['imagen'] = $uploadedFile->getSecurePath();
+            } catch (\Exception $e) {
+                // Si falla Cloudinary por credenciales, guardamos un log para no tumbar la app
+                logger('Error subiendo a Cloudinary: ' . $e->getMessage());
+            }
         }
-
-
 
         if ($this->isEditing) {
             $this->editingProduct->update($data);
