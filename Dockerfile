@@ -57,11 +57,7 @@ RUN a2enmod rewrite
 
 # Startup: configura el puerto dinámico de Render y arranca Apache
 CMD sh -c "\
-    mkdir -p /var/data/uploads && \
-    rm -rf /var/www/html/public/uploads && \
-    ln -s /var/data/uploads /var/www/html/public/uploads && \
-    chown -R www-data:www-data /var/data/uploads && \
-    chmod -R 775 /var/data/uploads && \
+    php artisan storage:link || true && \
     php artisan optimize:clear && \
     sed -i 's/Listen 80/Listen '\${PORT}'/g' /etc/apache2/ports.conf && \
     sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'\${PORT}'>/g' /etc/apache2/sites-available/*.conf && \
