@@ -28,13 +28,14 @@ WORKDIR /var/www/html
 # Copiar todos los archivos de tu proyecto al contenedor
 COPY . .
 
-# Crear directorios que Laravel necesita antes de ejecutar composer
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+# Crear directorios críticos que Laravel y Livewire necesitan
+RUN mkdir -p /var/www/html/storage \
+    /var/www/html/bootstrap/cache \
     /var/www/html/storage/framework/cache/data \
     /var/www/html/storage/framework/sessions \
     /var/www/html/storage/framework/views \
-    /var/www/html/storage/logs && \
-    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+    /var/www/html/storage/app/livewire-tmp \
+    /var/www/html/storage/logs
 
 # Instalar dependencias de PHP para producción
 RUN composer install --no-dev --optimize-autoloader
@@ -52,14 +53,14 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Habilitar el módulo rewrite de Apache (crucial para las rutas de Laravel)
+# Habilitar el módulo rewrite de Apache
 RUN a2enmod rewrite
 
-# Exponer el puerto por defecto
-EXPOSE 80
-
-# STARTUP OPTIMIZADO PARA CLOUDINARY: Configura el puerto dinámico de Render, limpia la caché vieja y arranca Apache
+# STARTUP: Crea/Verifica las rutas en tiempo de ejecución, reasigna permisos y levanta el puerto de Render
 CMD sh -c "\
+    mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/app/livewire-tmp storage/logs && \
+    chown -R www-data:www-data storage bootstrap/cache && \
+    chmod -R 775 storage bootstrap/cache && \
     php artisan config:clear && \
     php artisan cache:clear && \
     php artisan view:clear && \

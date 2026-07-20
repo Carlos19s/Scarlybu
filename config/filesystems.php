@@ -39,13 +39,13 @@ return [
         ],
 
         'public' => [
-    'driver' => 'local',
-    'root' => env('RENDER_DISK_PATH', storage_path('app/public')),
-    'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/uploads',
-    'visibility' => 'public',
-    'throw' => false,
-    'report' => false,
-],
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
 
         's3' => [
             'driver' => 's3',
@@ -59,12 +59,15 @@ return [
             'throw' => false,
             'report' => false,
         ],
- 'render_disk' => [
-        'driver' => 'local',
-        'root' => storage_path('app/public'),
-        'url' => env('APP_URL').'/storage',
-        'visibility' => 'public',
-    ],
+
+        'render_disk' => [
+            'driver' => 'local',
+            'root' => env('RENDER_DISK_PATH', storage_path('app/public')),
+            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
 
     ],
 
@@ -80,7 +83,8 @@ return [
     */
 
     'links' => [
-    public_path('uploads') => env('RENDER_DISK_PATH', storage_path('app/public')),
-],
+        public_path('storage') => storage_path('app/public'),
+        public_path('uploads') => env('RENDER_DISK_PATH', storage_path('app/public')),
+    ],
 
 ];
