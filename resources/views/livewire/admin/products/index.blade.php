@@ -82,13 +82,8 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->showModal = true;
     }
 
-        public function save(): void
+    public function save(): void
     {
-        logger()->info('Entró al método save');
-
-logger()->info([
-    'hay_imagen' => $this->imagen_upload ? true : false,
-]);
         $this->validate([
             'nombre' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -117,31 +112,8 @@ logger()->info([
         ];
 
         if ($this->imagen_upload) {
-
-    try {
-
-        $ruta = $this->imagen_upload->storePublicly('productos', 'public');
-
-        logger()->info('=== IMAGEN GUARDADA ===', [
-            'ruta' => $ruta,
-            'disk' => config('filesystems.disks.public.root'),
-            'archivo_existe' => file_exists(storage_path('app/public/' . $ruta)),
-        ]);
-
-        $data['imagen'] = $ruta;
-
-    } catch (\Throwable $e) {
-
-        logger()->error('ERROR SUBIENDO IMAGEN', [
-            'mensaje' => $e->getMessage(),
-            'archivo' => $e->getFile(),
-            'linea' => $e->getLine(),
-        ]);
-
-        throw $e;
-    }
-
-}
+            $data['imagen'] = $this->imagen_upload->storePublicly('productos', 'public');
+        }
 
         if ($this->isEditing) {
             $this->editingProduct->update($data);
