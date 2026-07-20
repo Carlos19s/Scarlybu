@@ -55,10 +55,14 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Habilitar el módulo rewrite de Apache (crucial para las rutas de Laravel)
 RUN a2enmod rewrite
 
-# Startup: configura el puerto dinámico de Render y arranca Apache
+# Exponer el puerto por defecto
+EXPOSE 80
+
+# STARTUP OPTIMIZADO PARA CLOUDINARY: Configura el puerto dinámico de Render, limpia la caché vieja y arranca Apache
 CMD sh -c "\
-    php artisan storage:link || true && \
-    php artisan optimize:clear && \
+    php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan view:clear && \
     sed -i 's/Listen 80/Listen '\${PORT}'/g' /etc/apache2/ports.conf && \
     sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'\${PORT}'>/g' /etc/apache2/sites-available/*.conf && \
     apache2-foreground"

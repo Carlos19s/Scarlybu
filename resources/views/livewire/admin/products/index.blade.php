@@ -112,25 +112,27 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'activo' => $this->activo,
         ];
 
-        if ($this->imagen_upload) {
+                if ($this->imagen_upload) {
+            // CORRECCIÓN: Usar config() en lugar de env() directo para evitar valores nulos en producción
+            $cloudinary = new Cloudinary([
+                'cloud' => [
+                    'cloud_name' => config('services.cloudinary.cloud_name') ?? env('CLOUDINARY_CLOUD_NAME'),
+                    'api_key'    => config('services.cloudinary.api_key') ?? env('CLOUDINARY_API_KEY'),
+                    'api_secret' => config('services.cloudinary.api_secret') ?? env('CLOUDINARY_API_SECRET'),
+                ],
+            ]);
 
-    $cloudinary = new Cloudinary([
-        'cloud' => [
-            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-            'api_key'    => env('CLOUDINARY_API_KEY'),
-            'api_secret' => env('CLOUDINARY_API_SECRET'),
-        ],
-    ]);
+            $upload = $cloudinary->uploadApi()->upload(
+                $this->imagen_upload->getRealPath(),
+                [
+                    'folder' => 'productos'
+                ]
+            );
 
-    $upload = $cloudinary->uploadApi()->upload(
-        $this->imagen_upload->getRealPath(),
-        [
-            'folder' => 'productos'
-        ]
-    );
+            // Almacena la URL segura completa entregada por Cloudinary
+            $data['imagen'] = $upload['secure_url'];
+        }
 
-    $data['imagen'] = $upload['secure_url'];
-}
 
         if ($this->isEditing) {
             $this->editingProduct->update($data);
