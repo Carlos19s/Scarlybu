@@ -59,12 +59,12 @@ return [
             'throw' => false,
             'report' => false,
         ],
-'render_disk' => [
-    'driver' => 'local',
-    'root' => storage_path('app/public'),
-    'url' => env('APP_URL').'/storage',
-    'visibility' => 'public',
-],
+ 'render_disk' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public'),
+        'url' => env('APP_URL').'/storage',
+        'visibility' => 'public',
+    ],
 
     ],
 
