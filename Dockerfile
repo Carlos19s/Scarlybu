@@ -56,14 +56,5 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Habilitar el módulo rewrite de Apache
 RUN a2enmod rewrite
 
-# STARTUP: Crea/Verifica las rutas en tiempo de ejecución, reasigna permisos y levanta el puerto de Render
-CMD sh -c "\
-    mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/app/livewire-tmp storage/logs && \
-    chown -R www-data:www-data storage bootstrap/cache && \
-    chmod -R 775 storage bootstrap/cache && \
-    php artisan config:clear && \
-    php artisan cache:clear && \
-    php artisan view:clear && \
-    sed -i 's/Listen 80/Listen '\${PORT}'/g' /etc/apache2/ports.conf && \
-    sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'\${PORT}'>/g' /etc/apache2/sites-available/*.conf && \
-    apache2-foreground"
+# STARTUP: Corrige los puertos dinámicos usando comillas dobles limpias para la ejecución del shell
+CMD sh -c "mkdir -p storage/app/livewire-tmp && chown -R www-data:www-data storage && chmod -R 775 storage && php artisan config:clear && php artisan cache:clear && php artisan view:clear && sed -i 's/Listen 80/Listen '$PORT'/g' /etc/apache2/ports.conf && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'$PORT'>/g' /etc/apache2/sites-available/*.conf && apache2-foreground"
