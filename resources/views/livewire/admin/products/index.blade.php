@@ -111,13 +111,9 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             'activo' => $this->activo,
         ];
 
-        // CAMBIO AQUÍ: Forzar el guardado directo en la carpeta pública real
-            if ($this->imagen_upload) {
-                $disk = in_array(env('FILESYSTEM_DISK', 'public'), ['render_disk', 's3'], true)
-                    ? env('FILESYSTEM_DISK')
-                    : 'public';
-                $data['imagen'] = $this->imagen_upload->storePublicly('productos', $disk);
-            }
+        if ($this->imagen_upload) {
+            $data['imagen'] = $this->imagen_upload->storePublicly('productos', 'public');
+        }
 
         if ($this->isEditing) {
             $this->editingProduct->update($data);
@@ -180,10 +176,9 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             <div class="admin-card animate-fade-in-up stagger-{{ ($index % 6) + 1 }}">
                 <!-- Image -->
                 <div class="relative overflow-hidden">
-                    <!-- Busca esto en tu grilla de productos y reemplázalo -->
-@if($product->imagen)
-    <img src="{{ asset($product->imagen) }}" alt="{{ $product->nombre }}"
-         class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
+                    @if($product->imagen)
+                        <img src="{{ asset('storage/' . $product->imagen) }}" alt="{{ $product->nombre }}"
+                             class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
 @else
 
                         <div class="w-full h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
@@ -292,7 +287,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
                     @elseif($isEditing && $editingProduct?->imagen)
                         <div class="mt-2">
                             <span class="text-xs text-slate-500 block mb-1">Imagen actual:</span>
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url($editingProduct->imagen) }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
+                            <img src="{{ asset('storage/' . $editingProduct->imagen) }}" class="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
                         </div>
                     @endif
                 </div>

@@ -41,6 +41,18 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * Get the full URL of the product image.
+     */
+    public function getImagenUrlAttribute(): ?string
+    {
+        if (! $this->imagen) {
+            return null;
+        }
+
+        return asset('storage/'.$this->imagen);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
