@@ -56,14 +56,11 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.
 # Habilitar el módulo rewrite de Apache
 RUN a2enmod rewrite
 
-# Optimización de caché de Laravel en el build
-RUN php artisan optimize
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
-
 # Startup optimizado y manejo del binding dinámico de puertos
 CMD sh -c "\
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
     sed -i 's/Listen 80/Listen '\${PORT}'/g' /etc/apache2/ports.conf && \
     sed -i 's/<VirtualHost \*:80>/<VirtualHost *:'\${PORT}'>/g' /etc/apache2/sites-available/*.conf && \
     apache2-foreground"
