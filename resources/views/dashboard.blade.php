@@ -3,9 +3,9 @@
         $role = auth()->user()?->roles->first()?->name ?? 'cliente';
         $userName = auth()->user()?->name ?? 'Usuario';
         // Ventas hoy = notas de pedido que se realizaron ese dia
-        $salesToday = \App\Models\Order::whereDate('created_at', \Carbon\Carbon::today())->count();
-        $salesWeek = \App\Models\Order::whereBetween('created_at', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()])->count();
-        $salesMonth = \App\Models\Order::whereMonth('created_at', \Carbon\Carbon::now()->month)->whereYear('created_at', \Carbon\Carbon::now()->year)->count();
+        $salesToday = \App\Models\Order::whereDate('created_at', \Carbon\Carbon::today())->whereNotIn('estado', ['cancelado', 'no_revisado'])->count();
+        $salesWeek = \App\Models\Order::whereBetween('created_at', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()])->whereNotIn('estado', ['cancelado', 'no_revisado'])->count();
+        $salesMonth = \App\Models\Order::whereMonth('created_at', \Carbon\Carbon::now()->month)->whereYear('created_at', \Carbon\Carbon::now()->year)->whereNotIn('estado', ['cancelado', 'no_revisado'])->count();
         $totalOrders = \App\Models\Order::count();
         $totalProducts = \App\Models\Product::count();
         $lowStockCount = \App\Models\Product::whereColumn('stock', '<=', 'stock_minimo')->count();

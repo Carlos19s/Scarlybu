@@ -51,8 +51,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
             return;
         }
 
-        // Decrement stock immediately (reserve)
-        $product->decrement('stock');
+        // No descontamos stock aquí, sólo al crear la nota de pedido
 
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;

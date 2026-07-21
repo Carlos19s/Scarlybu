@@ -24,7 +24,7 @@ new #[Layout('layouts.store')] #[Title('Ofertas y Promociones - Scarlybu')] clas
             return;
         }
 
-        $product->decrement('stock');
+        // Stock no se descuenta aquí
 
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;

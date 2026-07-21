@@ -35,7 +35,7 @@ new #[Layout('layouts.store')] class extends Component {
             return;
         }
 
-        $product->decrement('stock');
+        // Stock no se descuenta aquí
 
         if (isset($cart[$productId])) {
             $cart[$productId]['cantidad']++;

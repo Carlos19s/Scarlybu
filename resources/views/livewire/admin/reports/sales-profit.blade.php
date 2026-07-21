@@ -137,7 +137,7 @@ new #[Layout('layouts.app')] #[Title('Reporte de Ventas y Ganancias')] class ext
                 $pq->withTrashed();
             }]);
         }])
-        ->where('estado', '!=', 'cancelado')
+        ->whereNotIn('estado', ['cancelado', 'no_revisado'])
         ->whereBetween('created_at', [$start, $end])
         ->get();
 

@@ -49,8 +49,7 @@ new #[Layout('layouts.store')] class extends Component {
             return;
         }
 
-        // Reserve stock
-        $this->product->decrement('stock', $this->cantidad);
+        // Stock no se descuenta aquí
 
         if (isset($cart[$id])) {
             $cart[$id]['cantidad'] += $this->cantidad;

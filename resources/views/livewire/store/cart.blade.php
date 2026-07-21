@@ -70,12 +70,11 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
         $cart = session()->get('cart', []);
         if (isset($cart[$productId])) {
             $product = Product::find($productId);
-            if (! $product || $product->stock <= 0) {
+            // Validar que no sobrepase el stock disponible
+            if (! $product || $cart[$productId]['cantidad'] >= $product->stock) {
                 return;
             }
 
-            // Reserve 1 unit
-            $product->decrement('stock');
             $cart[$productId]['cantidad']++;
             session()->put('cart', $cart);
             $this->dispatch('cart-updated');
@@ -86,8 +85,6 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
     {
         $cart = session()->get('cart', []);
         if (isset($cart[$productId])) {
-            // Restore 1 unit
-            Product::where('id', $productId)->increment('stock');
 
             if ($cart[$productId]['cantidad'] > 1) {
                 $cart[$productId]['cantidad']--;
@@ -103,8 +100,6 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
     {
         $cart = session()->get('cart', []);
         if (isset($cart[$productId])) {
-            // Restore all reserved units
-            Product::where('id', $productId)->increment('stock', $cart[$productId]['cantidad']);
             unset($cart[$productId]);
             session()->put('cart', $cart);
             $this->dispatch('cart-updated');
@@ -114,11 +109,6 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
     public function clearCart()
     {
         $cart = session()->get('cart', []);
-
-        // Restore stock for all items
-        foreach ($cart as $productId => $item) {
-            Product::where('id', $productId)->increment('stock', $item['cantidad']);
-        }
 
         session()->forget('cart');
         $this->dispatch('cart-updated');
@@ -155,6 +145,15 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
             $total += $item['precio'] * $item['cantidad'];
         }
 
+        // Verify stock for all items
+        foreach ($cart as $productId => $item) {
+            $product = Product::find($productId);
+            if (!$product || $product->stock < $item['cantidad']) {
+                session()->flash('error', 'Lo sentimos, el producto "' . $item['nombre'] . '" ya no tiene stock suficiente (' . ($product ? $product->stock : 0) . ' disponibles).');
+                return;
+            }
+        }
+
         $order = Order::create([
             'numero_pedido' => 'SC-' . strtoupper(uniqid()),
             'user_id' => auth()->id(),
@@ -180,7 +179,12 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
                 'iva_porcentaje' => 15.00,
                 'subtotal' => $item['precio'] * $item['cantidad'],
             ]);
-            // Stock already reserved when added to cart — no decrement needed here
+            
+            // Decrement stock now that the order is confirmed
+            $product = Product::find($productId);
+            if ($product) {
+                $product->decrement('stock', $item['cantidad']);
+            }
         }
 
         session()->forget('cart');
@@ -293,6 +297,12 @@ new #[Layout('layouts.store')] #[Title('Carrito de Compras - Scarlybu')] class e
                     {{-- Checkout Form --}}
                     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-6 shadow-sm">
                         <h2 class="text-xl font-bold text-zinc-900 dark:text-white mb-6">📋 Datos de Envío</h2>
+
+                        @if (session()->has('error'))
+                            <div class="mb-4 p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-xl font-medium text-sm">
+                                {{ session('error') }}
+                            </div>
+                        @endif
 
                         <form wire:submit="placeOrder" class="space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
