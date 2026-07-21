@@ -34,11 +34,13 @@ new #[Layout('layouts.app')] #[Title('Promociones')] class extends Component {
 
     public function with(): array
     {
-        $query = Promocion::with(['product']);
+        // 1. Eager Loading optimizado: carga producto Y categoría del producto en 2 consultas SQL
+        $query = Promocion::with(['product' => fn($q) => $q->select('id', 'nombre', 'precio_venta', 'imagen', 'category_id')->with('category:id,nombre')]);
 
         if ($this->search) {
+            // Usa 'ilike' nativo de PostgreSQL en lugar de 'like'
             $query->whereHas('product', function($q) {
-                $q->where('nombre', 'like', "%{$this->search}%");
+                $q->where('nombre', 'ilike', "%{$this->search}%");
             });
         }
 
@@ -54,7 +56,8 @@ new #[Layout('layouts.app')] #[Title('Promociones')] class extends Component {
 
         return [
             'promotions' => $query->latest()->paginate(10),
-            'products' => Product::where('activo', true)->orderBy('nombre')->get(),
+            // 2. Trae solo las 3 columnas necesarias para el select modal (id, nombre, precio_venta)
+            'products' => Product::where('activo', true)->select('id', 'nombre', 'precio_venta')->orderBy('nombre')->get(),
         ];
     }
 
@@ -87,7 +90,6 @@ new #[Layout('layouts.app')] #[Title('Promociones')] class extends Component {
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
 
-        // Check if promotional price is lower than original price
         $product = Product::findOrFail($this->product_id);
         if ($this->precio_promocion >= $product->precio_venta) {
             $this->addError('precio_promocion', 'El precio de oferta debe ser menor al precio original ($' . number_format($product->precio_venta, 2) . ').');
@@ -104,7 +106,6 @@ new #[Layout('layouts.app')] #[Title('Promociones')] class extends Component {
         if ($this->isEditing) {
             $this->editingPromocion->update($data);
         } else {
-            // Check if product already has an active promotion during this timeframe (optional safety check)
             Promocion::create($data);
         }
 
@@ -124,6 +125,7 @@ new #[Layout('layouts.app')] #[Title('Promociones')] class extends Component {
         ]);
     }
 }; ?>
+
 
 <div class="space-y-6">
     <!-- Page Header -->

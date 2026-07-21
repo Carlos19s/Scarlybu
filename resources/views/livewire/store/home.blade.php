@@ -1,16 +1,39 @@
 <?php
 
 use Livewire\Volt\Component;
+use Livewire\WithPagination;
 use App\Models\Product;
 use App\Models\Category;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 
 new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class extends Component {
+    use WithPagination;
+
     public string $search = '';
     public string $sortBy = 'newest';
     public ?float $priceMin = null;
     public ?float $priceMax = null;
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSortBy(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPriceMin(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPriceMax(): void
+    {
+        $this->resetPage();
+    }
 
     public function addToCart(int $productId): void
     {
@@ -60,7 +83,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
         $query = Product::where('activo', true)->with(['category', 'promociones']);
 
         if ($this->search !== '') {
-            $query->where('nombre', 'like', '%' . $this->search . '%');
+            $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . mb_strtolower($this->search) . '%']);
         }
 
         if ($this->priceMin !== null) {
@@ -78,7 +101,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
 
         return [
             'categories'    => Category::whereNull('parent_id')->where('activa', true)->with('children')->get(),
-            'allProducts'   => $query->get(),
+            'allProducts'   => $query->paginate(12),
             'activePromos'  => $activePromos,
         ];
     }
@@ -450,6 +473,11 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                     </button>
                 </div>
             @endforelse
+        </div>
+
+        {{-- Paginación --}}
+        <div class="mt-8">
+            {{ $allProducts->links() }}
         </div>
     </section>
 

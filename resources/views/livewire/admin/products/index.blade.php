@@ -33,6 +33,7 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
 
     public string $search = '';
     public string $categoryFilter = '';
+    public string $stockFilter = '';
 
     public function updatingSearch(): void
     {
@@ -44,12 +45,18 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         $this->resetPage();
     }
 
+    public function updatingStockFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function with(): array
     {
         return [
             'products' => Product::with('category')
-                ->when($this->search, fn($q) => $q->where('nombre', 'like', "%{$this->search}%"))
+                ->when($this->search, fn($q) => $q->whereRaw('LOWER(nombre) LIKE ?', ['%' . mb_strtolower($this->search) . '%']))
                 ->when($this->categoryFilter, fn($q) => $q->where('category_id', $this->categoryFilter))
+                ->when($this->stockFilter === 'agotados', fn($q) => $q->where('stock', '<=', 0))
                 ->latest()
                 ->paginate(9),
             'categories' => Category::all(),
@@ -189,6 +196,11 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
             <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar productos..."
                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-colors">
         </div>
+        <select wire:model.live="stockFilter"
+                class="px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-[160px]">
+            <option value="">Todos los stocks</option>
+            <option value="agotados">Agotados</option>
+        </select>
         <select wire:model.live="categoryFilter"
                 class="px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-[180px]">
             <option value="">Todas las categorías</option>
