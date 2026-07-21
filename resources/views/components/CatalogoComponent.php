@@ -12,7 +12,9 @@ class CatalogoComponent extends Component
     use WithPagination;
 
     public string $buscar = '';
+
     public int $categoriaId = 0;
+
     public string $ordenar = 'nombre';
 
     public function updatingBuscar()
@@ -26,24 +28,22 @@ class CatalogoComponent extends Component
     }
 
     public function render()
-{
-    $categorias = \App\Models\Category::where('activa', true)->get();
+    {
+        $categorias = Category::where('activa', true)->get();
 
-    $productos = \App\Models\Product::with('category')
-        ->where('activo', true)
-        ->where('stock', '>', 0)
-        ->when($this->buscar, fn($q) =>
-            $q->where('nombre', 'ilike', '%'.$this->buscar.'%')
-        )
-        ->when($this->categoriaId, fn($q) =>
-            $q->where('category_id', $this->categoriaId)
-        )
-        ->orderBy($this->ordenar)
-        ->paginate(12);
+        $productos = Product::with('category')
+            ->where('activo', true)
+            ->where('stock', '>', 0)
+            ->when($this->buscar, fn ($q) => $q->where('nombre', 'ilike', '%'.$this->buscar.'%')
+            )
+            ->when($this->categoriaId, fn ($q) => $q->where('category_id', $this->categoriaId)
+            )
+            ->orderBy($this->ordenar)
+            ->paginate(12);
 
-    return view('livewire.catalogo-component', [
-        'productos' => $productos,
-        'categorias' => $categorias // 🔥 ESTE ES EL QUE TE FALTA
-    ]);
-}
+        return view('livewire.catalogo-component', [
+            'productos' => $productos,
+            'categorias' => $categorias, // 🔥 ESTE ES EL QUE TE FALTA
+        ]);
+    }
 }

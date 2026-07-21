@@ -60,7 +60,10 @@ new #[Layout('layouts.store')] class extends Component {
         return [
             'products' => Product::whereIn('category_id', $this->category->getAllCategoryIds())
                 ->where('activo', true)
-                ->with(['category', 'promociones'])
+                ->with(['category', 'promociones' => fn ($q) => $q
+                    ->where('fecha_inicio', '<=', now()->toDateString())
+                    ->where('fecha_fin', '>=', now()->toDateString())
+                ])
                 ->latest()
                 ->paginate(12),
         ];

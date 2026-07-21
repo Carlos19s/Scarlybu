@@ -10,9 +10,13 @@ new #[Layout('layouts.store')] class extends Component {
 
     public function mount(string $slug)
     {
+        $today = now()->toDateString();
         $this->product = Product::where('slug', $slug)
             ->where('activo', true)
-            ->with(['category', 'promociones'])
+            ->with(['category', 'promociones' => fn ($q) => $q
+                ->where('fecha_inicio', '<=', $today)
+                ->where('fecha_fin', '>=', $today)
+            ])
             ->firstOrFail();
     }
 
@@ -73,7 +77,10 @@ new #[Layout('layouts.store')] class extends Component {
             'relatedProducts' => Product::where('category_id', $this->product->category_id)
                 ->where('id', '!=', $this->product->id)
                 ->where('activo', true)
-                ->with('promociones')
+                ->with(['promociones' => fn ($q) => $q
+                    ->where('fecha_inicio', '<=', now()->toDateString())
+                    ->where('fecha_fin', '>=', now()->toDateString())
+                ])
                 ->inRandomOrder()
                 ->take(4)
                 ->get(),

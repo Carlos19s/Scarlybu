@@ -80,7 +80,10 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
             ->with(['product.category'])
             ->get();
 
-        $query = Product::where('activo', true)->with(['category', 'promociones']);
+        $query = Product::where('activo', true)->with(['category', 'promociones' => fn ($q) => $q
+            ->where('fecha_inicio', '<=', $today)
+            ->where('fecha_fin', '>=', $today)
+        ]);
 
         if ($this->search !== '') {
             $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . mb_strtolower($this->search) . '%']);

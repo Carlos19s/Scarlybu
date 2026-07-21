@@ -76,21 +76,9 @@ class Product extends Model
      */
     public function getPromocionActivaAttribute(): ?Promocion
     {
-        $today = now()->toDateString();
-
-        // Si ya se cargó la relación con eager loading, filtramos en memoria (0 consultas SQL)
-        if ($this->relationLoaded('promociones')) {
-            return $this->promociones
-                ->where('fecha_inicio', '<=', $today)
-                ->where('fecha_fin', '>=', $today)
-                ->first();
-        }
-
-        // Si no se ha cargado, hace la consulta a la BD
-        return $this->promociones()
-            ->where('fecha_inicio', '<=', $today)
-            ->where('fecha_fin', '>=', $today)
-            ->first();
+        // Como ya filtramos las promociones activas en la carga ansiosa
+        // o si no se cargó podemos simplemente obtener la primera (si existe)
+        return $this->promociones->first();
     }
 
     /**

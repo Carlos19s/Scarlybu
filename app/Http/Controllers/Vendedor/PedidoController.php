@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Vendedor;
 
 use App\Http\Controllers\Controller;
@@ -9,18 +10,20 @@ class PedidoController extends Controller
 {
     public function __construct()
     {
-        abort_unless(auth()->check() && in_array(auth()->user()->role, ['vendedor','gerente']), 403);
+        abort_unless(auth()->check() && in_array(auth()->user()->role, ['vendedor', 'gerente']), 403);
     }
 
     public function index()
     {
-        $pedidos = Order::with('items.product','user')->latest()->paginate(15);
+        $pedidos = Order::with('items.product', 'user')->latest()->paginate(15);
+
         return view('vendedor.pedidos.index', compact('pedidos'));
     }
 
     public function show(Order $pedido)
     {
-        $pedido->load('items.product','user');
+        $pedido->load('items.product', 'user');
+
         return view('vendedor.pedidos.show', compact('pedido'));
     }
 
@@ -28,6 +31,7 @@ class PedidoController extends Controller
     {
         $request->validate(['estado' => 'required|in:no_revisado,pendiente,revisado,cancelado']);
         $pedido->update(['estado' => $request->estado]);
+
         return redirect()->back()->with('mensaje', 'Estado actualizado.');
     }
 
@@ -35,6 +39,7 @@ class PedidoController extends Controller
     {
         $tel = preg_replace('/\D/', '', $pedido->cliente_telefono);
         $msg = urlencode("Hola {$pedido->cliente_nombre}, tu pedido {$pedido->numero_pedido} está en estado: {$pedido->estado}. Total: \${$pedido->total}");
+
         return redirect("https://wa.me/{$tel}?text={$msg}");
     }
 }

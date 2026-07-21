@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Order;
@@ -9,6 +10,7 @@ class PedidoController extends Controller
     public function confirmacion(Order $order)
     {
         abort_if($order->user_id !== Auth::id(), 403);
+
         return view('pedidos.confirmacion', compact('order'));
     }
 
@@ -18,6 +20,7 @@ class PedidoController extends Controller
             ->where('user_id', Auth::id())
             ->latest()
             ->paginate(10);
+
         return view('pedidos.historial', compact('pedidos'));
     }
 }
