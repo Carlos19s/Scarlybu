@@ -107,7 +107,7 @@ new #[Layout('layouts.store')] class extends Component {
             {{-- Image --}}
             <div class="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 relative">
                 @if($product->imagen)
-                                    <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="w-full h-full object-cover">   
+                                    <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="w-full h-full object-contain p-4">   
                 @else
                     <div class="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                         <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -195,7 +195,7 @@ new #[Layout('layouts.store')] class extends Component {
                     <a href="{{ route('store.product', $related->slug) }}" class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 relative" wire:navigate>
                         <div class="aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800 relative">
                             @if($related->imagen)
-                             <img src="{{ $related->imagen_url }}" alt="{{ $related->nombre }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">    
+                             <img src="{{ $related->imagen_url }}" alt="{{ $related->nombre }}" class="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500">    
                             @else
                                 <div class="w-full h-full flex items-center justify-center text-slate-300"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                             @endif
