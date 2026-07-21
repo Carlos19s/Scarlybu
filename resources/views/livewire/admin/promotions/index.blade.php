@@ -312,7 +312,7 @@ new #[Layout('layouts.app')] #[Title('Promociones')] class extends Component {
                         <div class="w-[180px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-md">
                             <div class="aspect-square bg-slate-100 dark:bg-slate-800 relative">
                                 @if($selectedProduct && $selectedProduct->imagen)
-                                     <img src="{{ $selectedProduct->imagen_url }}" class="w-full h-full object-cover">
+                                     <img src="{{ $selectedProduct->imagen_url }}" class="w-full h-full object-contain">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-slate-400 text-3xl">
                                         🧢

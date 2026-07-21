@@ -203,13 +203,13 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         @forelse($products as $index => $product)
             <div class="admin-card animate-fade-in-up stagger-{{ ($index % 6) + 1 }}">
                 <!-- Image -->
-                <div class="relative overflow-hidden">
+                <div class="relative overflow-hidden bg-slate-100 dark:bg-slate-800/50">
                     @if($product->imagen)
                         <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}"
-                             class="w-full h-44 object-cover transition-transform duration-500 hover:scale-105">
+                             class="w-full h-80 object-contain py-2 transition-transform duration-500 hover:scale-105">
 @else
 
-                        <div class="w-full h-44 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
+                        <div class="w-full h-80 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
                             <svg class="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                     @endif
