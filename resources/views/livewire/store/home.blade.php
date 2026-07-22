@@ -76,7 +76,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
     {
         $today = now()->toDateString();
         
-        $activePromos = Cache::remember("home_active_promos_{$today}", 3600, function () use ($today) {
+        $activePromos = Cache::remember("home_active_promos_v2_{$today}", 3600, function () use ($today) {
             return \App\Models\Promocion::where('fecha_inicio', '<=', $today)
                 ->where('fecha_fin', '>=', $today)
                 ->with(['product.category'])
@@ -105,7 +105,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
             ->when($this->sortBy === 'name', fn ($q) => $q->orderBy('nombre'))
             ->when($this->sortBy === 'newest', fn ($q) => $q->latest());
 
-        $categories = Cache::remember('home_categories_activa', 3600, function () {
+        $categories = Cache::remember('home_categories_activa_v2', 3600, function () {
             return Category::whereNull('parent_id')->where('activa', true)->get();
         });
 
