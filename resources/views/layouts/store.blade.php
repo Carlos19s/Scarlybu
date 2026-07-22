@@ -44,7 +44,9 @@
                     {{-- Category Nav (Desktop) --}}
                     <nav class="hidden md:flex items-center gap-1">
                         @php
-                            $navCategories = \App\Models\Category::whereNull('parent_id')->where('activa', true)->get();
+                            $navCategories = \Illuminate\Support\Facades\Cache::remember('nav_categories_activa', 3600, function () {
+                                return \App\Models\Category::whereNull('parent_id')->where('activa', true)->get();
+                            });
                         @endphp
                         @foreach($navCategories as $cat)
                             <a href="{{ route('store.category', $cat->slug) }}"

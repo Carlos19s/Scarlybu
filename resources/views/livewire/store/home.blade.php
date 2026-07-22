@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Support\Facades\Cache;
 
 new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class extends Component {
     use WithPagination;
@@ -74,10 +75,13 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
     public function with(): array
     {
         $today = now()->toDateString();
-        $activePromos = \App\Models\Promocion::where('fecha_inicio', '<=', $today)
-            ->where('fecha_fin', '>=', $today)
-            ->with(['product.category'])
-            ->get();
+        
+        $activePromos = Cache::remember("home_active_promos_{$today}", 3600, function () use ($today) {
+            return \App\Models\Promocion::where('fecha_inicio', '<=', $today)
+                ->where('fecha_fin', '>=', $today)
+                ->with(['product.category'])
+                ->get();
+        });
 
         $query = Product::where('activo', true)->with(['category', 'promociones' => fn ($q) => $q
             ->where('fecha_inicio', '<=', $today)
@@ -85,7 +89,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
         ]);
 
         if ($this->search !== '') {
-            $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . mb_strtolower($this->search) . '%']);
+            $query->where('nombre', 'like', '%' . $this->search . '%');
         }
 
         if ($this->priceMin !== null) {
@@ -101,8 +105,12 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
             ->when($this->sortBy === 'name', fn ($q) => $q->orderBy('nombre'))
             ->when($this->sortBy === 'newest', fn ($q) => $q->latest());
 
+        $categories = Cache::remember('home_categories_activa', 3600, function () {
+            return Category::whereNull('parent_id')->where('activa', true)->get();
+        });
+
         return [
-            'categories'    => Category::whereNull('parent_id')->where('activa', true)->with('children')->get(),
+            'categories'    => $categories,
             'allProducts'   => $query->paginate(12),
             'activePromos'  => $activePromos,
         ];
@@ -201,6 +209,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                                 @if($product->imagen)
                                     <img src="{{ $product->imagen_url }}"
                                          alt="{{ $product->nombre }}"
+                                         loading="lazy"
                                          class="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center" style="color:#555;">
@@ -275,7 +284,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                      x-transition:leave-start="opacity-100 scale-100"
                      x-transition:leave-end="opacity-0 scale-95"
                      class="absolute inset-0">
-                    <img :src="img" :alt="'Foto local ' + (idx+1)" class="w-full h-full object-cover">
+                    <img :src="img" :alt="'Foto local ' + (idx+1)" loading="lazy" class="w-full h-full object-cover">
                     <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(13,17,23,0.6) 0%, transparent 50%);"></div>
                 </div>
             </template>
@@ -330,6 +339,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                 <div class="group relative rounded-2xl overflow-hidden cursor-pointer" style="aspect-ratio: 3/4; background:#1f2128;">
                     <img src="{{ asset('img/Modelos/' . $m['img']) }}"
                          alt="{{ $m['label'] }}"
+                         loading="lazy"
                          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                          style="background:linear-gradient(to top, rgba(13,17,23,0.85) 0%, transparent 60%);"></div>
@@ -416,6 +426,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                             @if($product->imagen)
                                 <img src="{{ $product->imagen_url }}"
                                      alt="{{ $product->nombre }}"
+                                     loading="lazy"
                                      class="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500">
                             @else
                                 <div class="w-full h-full flex items-center justify-center" style="color:#555;">
