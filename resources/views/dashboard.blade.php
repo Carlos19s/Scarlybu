@@ -1,9 +1,5 @@
 <x-layouts::app :title="__('Dashboard')">
     @php
-        $user = auth()->user();
-        $role = $user?->role ?? 'cliente';
-        $userName = $user?->name ?? 'Usuario';
-
         $salesToday = 0;
         $salesWeek = 0;
         $salesMonth = 0;
