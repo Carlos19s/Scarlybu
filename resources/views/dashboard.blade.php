@@ -1,15 +1,28 @@
 <x-layouts::app :title="__('Dashboard')">
     @php
-        $role = auth()->user()?->roles->first()?->name ?? 'cliente';
-        $userName = auth()->user()?->name ?? 'Usuario';
-        // Ventas hoy = notas de pedido que se realizaron ese dia
-        $salesToday = \App\Models\Order::whereDate('created_at', \Carbon\Carbon::today())->whereNotIn('estado', ['cancelado', 'no_revisado'])->count();
-        $salesWeek = \App\Models\Order::whereBetween('created_at', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()])->whereNotIn('estado', ['cancelado', 'no_revisado'])->count();
-        $salesMonth = \App\Models\Order::whereMonth('created_at', \Carbon\Carbon::now()->month)->whereYear('created_at', \Carbon\Carbon::now()->year)->whereNotIn('estado', ['cancelado', 'no_revisado'])->count();
-        $totalOrders = \App\Models\Order::count();
-        $totalProducts = \App\Models\Product::count();
-        $lowStockCount = \App\Models\Product::whereColumn('stock', '<=', 'stock_minimo')->count();
-        $totalUsers = \App\Models\User::count();
+        $salesToday = 0;
+        $salesWeek = 0;
+        $salesMonth = 0;
+        $totalOrders = 0;
+        $totalProducts = 0;
+        $lowStockCount = 0;
+        $totalUsers = 0;
+
+        if ($role !== 'cliente') {
+            $totalOrders = \App\Models\Order::count();
+            $totalProducts = \App\Models\Product::count();
+            $lowStockCount = \App\Models\Product::whereColumn('stock', '<=', 'stock_minimo')->count();
+            $salesMonth = \App\Models\Order::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+            
+            if ($role === 'gerente') {
+                $salesToday = \App\Models\Order::whereDate('created_at', today())->count();
+                $salesWeek = \App\Models\Order::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+            }
+            
+            if (auth()->user()?->can('manage_users')) {
+                $totalUsers = \App\Models\User::count();
+            }
+        }
     @endphp
 
     <div class="space-y-8">

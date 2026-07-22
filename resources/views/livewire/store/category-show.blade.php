@@ -175,7 +175,7 @@ new #[Layout('layouts.store')] class extends Component {
         </div>
 
         <div class="mt-8">
-            {{ $products->links() }}
+            {{ $products->links(data: ['scrollTo' => false]) }}
         </div>
     </section>
 </div>

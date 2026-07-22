@@ -76,9 +76,18 @@ class Product extends Model
      */
     public function getPromocionActivaAttribute(): ?Promocion
     {
-        // Como ya filtramos las promociones activas en la carga ansiosa
-        // o si no se cargó podemos simplemente obtener la primera (si existe)
-        return $this->promociones->first();
+        $today = now()->toDateString();
+
+        if ($this->relationLoaded('promociones')) {
+            return $this->promociones->filter(function ($promo) use ($today) {
+                return $promo->fecha_inicio <= $today && $promo->fecha_fin >= $today;
+            })->first();
+        }
+
+        return $this->promociones()
+            ->where('fecha_inicio', '<=', $today)
+            ->where('fecha_fin', '>=', $today)
+            ->first();
     }
 
     /**

@@ -106,7 +106,13 @@ new #[Layout('layouts.app')] #[Title('Productos')] class extends Component {
         if (empty($this->slug)) {
             $this->slug = Str::slug($this->nombre);
         }
-
+         // Asegurar que el slug sea único
+        $baseSlug = $this->slug;
+        $counter = 1;
+        while (Product::where('slug', $this->slug)->when($this->isEditing, fn($q) => $q->where('id', '!=', $this->editingProduct->id))->exists()) {
+            $this->slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
         $data = [
             'nombre' => $this->nombre,
             'slug' => $this->slug,

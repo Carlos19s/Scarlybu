@@ -146,7 +146,7 @@ new #[Layout('layouts.store')] #[Title('Ofertas y Promociones - Scarlybu')] clas
 
         @if($promotions->hasPages())
             <div class="mt-10">
-                {{ $promotions->links() }}
+                {{ $promotions->links(data: ['scrollTo' => false]) }}
             </div>
         @endif
     </section>

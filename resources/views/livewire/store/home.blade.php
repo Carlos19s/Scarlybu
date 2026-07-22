@@ -363,7 +363,7 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
                 <h2 class="text-2xl md:text-3xl font-extrabold" style="color:#f2f2f7;">Todos los Productos</h2>
-                <p class="text-sm mt-0.5" style="color:#b8bac1;">{{ $allProducts->count() }} productos disponibles</p>
+                <p class="text-sm mt-0.5" style="color:#b8bac1;">Mostrando {{ $allProducts->count() }} de {{ $allProducts->total() }} productos en el catálogo</p>
             </div>
 
             {{-- Barra de búsqueda y filtros --}}
@@ -478,9 +478,11 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
         </div>
 
         {{-- Paginación --}}
-        <div class="mt-8">
-            {{ $allProducts->links() }}
-        </div>
+        @if($allProducts->hasPages())
+            <div class="mt-10">
+                {{ $allProducts->links(data: ['scrollTo' => false]) }}
+            </div>
+        @endif
     </section>
 
     {{-- ═══════════════════════════════════════════════════ --}}
