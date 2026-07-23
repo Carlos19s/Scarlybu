@@ -66,7 +66,9 @@ class Category extends Model
     {
         static::saved(function () {
             cache()->forget('nav_categories');
+            cache()->forget('nav_categories_activa');
             cache()->forget('home_categories');
+            cache()->forget('home_categories_activa_v2');
             cache()->forget('home_featured_products');
             // Clear individual category caches
             foreach (self::all() as $cat) {
@@ -77,7 +79,9 @@ class Category extends Model
 
         static::deleted(function () {
             cache()->forget('nav_categories');
+            cache()->forget('nav_categories_activa');
             cache()->forget('home_categories');
+            cache()->forget('home_categories_activa_v2');
             cache()->forget('home_featured_products');
         });
     }

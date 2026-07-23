@@ -50,4 +50,21 @@ class Promocion extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /**
+     * Clear storefront caches when a promotion changes.
+     */
+    protected static function booted(): void
+    {
+        $clearCache = function ($promo) {
+            $today = now()->toDateString();
+            cache()->forget("home_active_promos_v2_{$today}");
+            if ($promo->product_id) {
+                cache()->forget("product_{$promo->product_id}");
+            }
+        };
+
+        static::saved($clearCache);
+        static::deleted($clearCache);
+    }
 }

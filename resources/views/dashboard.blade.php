@@ -1,5 +1,9 @@
 <x-layouts::app :title="__('Dashboard')">
     @php
+        $user = auth()->user();
+        $role = $user?->roles->first()?->name ?? 'cliente';
+        $userName = $user?->name ?? 'Usuario';
+        
         $salesToday = 0;
         $salesWeek = 0;
         $salesMonth = 0;
@@ -12,11 +16,11 @@
             $totalOrders = \App\Models\Order::count();
             $totalProducts = \App\Models\Product::count();
             $lowStockCount = \App\Models\Product::whereColumn('stock', '<=', 'stock_minimo')->count();
-            $salesMonth = \App\Models\Order::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+            $salesMonth = \App\Models\Order::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->whereNotIn('estado', ['no_revisado', 'cancelado'])->count();
             
             if ($role === 'gerente') {
-                $salesToday = \App\Models\Order::whereDate('created_at', today())->count();
-                $salesWeek = \App\Models\Order::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+                $salesToday = \App\Models\Order::whereDate('created_at', today())->whereNotIn('estado', ['no_revisado', 'cancelado'])->count();
+                $salesWeek = \App\Models\Order::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->whereNotIn('estado', ['no_revisado', 'cancelado'])->count();
             }
             
             if (auth()->user()?->can('manage_users')) {

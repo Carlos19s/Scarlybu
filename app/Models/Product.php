@@ -80,7 +80,9 @@ class Product extends Model
 
         if ($this->relationLoaded('promociones')) {
             return $this->promociones->filter(function ($promo) use ($today) {
-                return $promo->fecha_inicio <= $today && $promo->fecha_fin >= $today;
+                $inicio = is_string($promo->fecha_inicio) ? $promo->fecha_inicio : $promo->fecha_inicio->toDateString();
+                $fin = is_string($promo->fecha_fin) ? $promo->fecha_fin : $promo->fecha_fin->toDateString();
+                return $inicio <= $today && $fin >= $today;
             })->first();
         }
 

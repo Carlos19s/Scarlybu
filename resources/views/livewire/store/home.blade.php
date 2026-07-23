@@ -83,10 +83,14 @@ new #[Layout('layouts.store')] #[Title('Scarlybu - Tu Tienda de Moda')] class ex
                 ->get();
         });
 
-        $query = Product::where('activo', true)->with(['category', 'promociones' => fn ($q) => $q
-            ->where('fecha_inicio', '<=', $today)
-            ->where('fecha_fin', '>=', $today)
-        ]);
+        $query = Product::query()
+            ->select('products.*')
+            ->where('activo', true)
+            ->with(['category', 'promociones' => fn ($q) => $q
+                ->where('fecha_inicio', '<=', $today)
+                ->where('fecha_fin', '>=', $today)
+            ])
+            ->orderByRaw('(SELECT 1 FROM promociones WHERE product_id = products.id AND fecha_inicio <= ? AND fecha_fin >= ? LIMIT 1) DESC NULLS LAST', [$today, $today]);
 
         if ($this->search !== '') {
             $query->where('nombre', 'like', '%' . $this->search . '%');
